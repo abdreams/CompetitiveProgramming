@@ -11,9 +11,10 @@
             ],
             "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "macos-clang-arm64",
-            "compilerPath": "/usr/bin/gcc"
+            "intelliSenseMode": "macos-gcc-x64"
         }
     ],
     "version": 4
 }
+
+

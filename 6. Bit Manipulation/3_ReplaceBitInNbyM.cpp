@@ -11,6 +11,7 @@ int clearRangeItoJ(int n,int i,int j){
 
 }
 
+
 int main(){
 #ifndef ONLINE_JUDGE
     freopen("input.txt","r",stdin);

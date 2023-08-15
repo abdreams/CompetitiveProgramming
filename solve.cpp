@@ -38,9 +38,6 @@ void ab_d(){
 int32_t main()
 {
     ab_d();
-    int x;
-    cin>>x;
-    cout<<x;
 
     return 0;
 }

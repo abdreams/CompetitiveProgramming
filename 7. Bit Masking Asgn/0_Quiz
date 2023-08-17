@@ -1,0 +1,222 @@
+Quiz questions
+
+0. Title: bitmask set 0 to 1
+Description: Bit operation which can be used to set **i<sup>th<sup>** bit of a number **N** from **0** to **1**
+
+
+0.N |=  (1 >>  i) 
+1.N &=  ~(1 << i)
+2.N |=  (1 <<  i) --
+3.N &=  ~(1 >> i)
+
+
+
+1. Title: bitmask set bit 1 to 0
+Description: Bit operation which can be used to set **i<sup>th<sup>** bit of a number **N** from **1** to **0**
+
+
+
+0.N |=  (1 >>  i)
+1.N |=  (1 <<  i) 
+2.N &=  ~(1 << i) --
+3.N &=  ~(1 >> i)
+
+
+
+2. Title: bitmask flip ith bit
+Description: Bit operation which can be used to flip the **i<sup>th</sup>** bit of a number **N**
+
+0.N ^= (1 >> i)
+1.N ~= (1 << i)
+2.N ^= (1 << i ) --
+3.N ~= (1 >> i)
+
+
+
+3. Title: bitmask index of on lsb
+Description: Which one line function can be used to get index of the <b>least significant bit</b> that is on (first 1 from right to left in binary representation of an integer) ?
+
+0.log2( N ^ -N ) + 1
+1.log2( N | -N ) + 1
+2.log2( N & -N ) + 1 --
+3.log2( N ~ -N ) + 1
+
+
+
+4. Title: bitmask count set bits
+Description: ```
+bool get (int n)
+{
+	int x = 0;
+	while( n )
+	{
+		x += n&1;
+		n = n>>1;
+	}
+	return x;
+}
+```
+Above function will return :-
+
+
+0.Total number of divisors of n
+1.Total number of factors of n
+2.Total number of unset bits in binary representation of a n
+3.Total number of set bits in binary representation of a n --
+
+
+
+5. Title: bitmask count set bits 2 ??
+0.Total number of factors of n
+1.Total number of divisors of n
+2.Total number of unset bits in binary representation of a n
+3.Total number of set bits in binary representation of a n
+
+
+
+6. Title: bitmask power of 2
+Description: ```
+bool get(int x)
+{
+     return (x && !(x & (x - 1)));
+}
+```
+
+Above function will return :-
+
+
+0.false if X is a power 2
+1.true if X is a power 2 -- 
+2.true if X is a perfect square of some integer
+3.true if X is a not a perfect square of some integer
+
+The expression x & (x - 1) clears the least significant set bit in x. This is because when subtracting 1 from x, it will change the rightmost set bit to 0 and all the bits to its right to 1, and doing a bitwise AND with x will clear this rightmost set bit.
+
+The condition x && !(x & (x - 1)) checks if x is not zero and the result of the bitwise AND is zero. This is true if and only if x has exactly one set bit, which implies that x is a power of 2 (since a power of 2 has only one bit set).
+
+So, the correct option is:
+
+True if X is a power of 2.
+
+
+7. Title: bitmask multiply by 4
+Description: Which of the following bitwise operation can be used to multiply a given number **n** by **4**?
+
+0.n<<4
+1.n<<2 --
+2.n>>4
+3.n>>2
+
+
+
+8. Title: bitmask 1<<32 32 bit
+Description: 
+```
+long long x = (1 << 32) ;
+```
+
+What will be the value of **x** ?
+
+
+0.2<sup>32</sup>
+1.Compilation Error --
+2.2<sup>31</sup>
+3.None of the above
+
+
+
+9. Title: bitmask 1<<32 64
+Description: ```
+long long x = (1LL << 32) ;
+```
+What will be the value of **x** ?
+
+
+0.Compilation Error
+1.2<sup>31</sup>
+2.2<sup>32</sup> --
+3.None of the above
+4.Compilation Error
+
+
+
+10. Title: bitmask swap number xor
+Description: ```
+x = 2;
+y = 3;
+x = x^y;
+y = x^y;
+x = x^y;
+cout << x << ” “ << y << endl;
+```
+
+
+What will be the output of above C++ code?
+
+
+0.2 3
+1.2 2
+2.3 3
+3.3 2 --
+
+
+
+11. Title: bitmask ~
+Description: ```
+int x = ~10;
+```
+
+What will be the value of **x**?
+
+
+0.10
+1.-10
+2.-11 --
+3.11
+
+
+
+12. Title: bitmask output1
+Description: ```
+int x = 7, y = 4, z = 2;
+cout << ( x|y&z ) << endl;
+```
+
+What will be the output of the above code?
+
+
+0.3
+1.7 --
+2.6
+3.8
+
+
+
+13. Title: bitmask ouput2
+Description: ```
+int x = 5, y = 2, z = 5;
+cout << ( z&x<<y ) << endl;
+```
+
+What will be the output of the above code?
+
+
+0.5
+1.20
+2.4 --
+3.10
+
+
+
+14. Title: bitmask output3
+Description: ```
+int a = 20, b = 2, c = 3, d = 1;
+cout << ( a>>b&c+d ) << endl;
+```
+
+What will be the output of the above code?
+
+0.5
+1.2
+2.4 --
+3.11

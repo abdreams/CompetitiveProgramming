@@ -38,6 +38,28 @@ void ab_d(){
 int32_t main()
 {
     ab_d();
+    int testCases;
+    cin >> testCases;
 
+    while (testCases--) {
+        int cost, typeWorth, regularCount1, regularCount2;
+        cin >> cost >> typeWorth >> regularCount1 >> regularCount2;
+        
+        if (regularCount1 >= cost || (cost % typeWorth <= regularCount1 && cost / typeWorth <= regularCount2)) {
+            cout << 0 << endl;
+        } else {
+            int numType2 = min(cost / typeWorth, regularCount2);
+            int numType1 = min(cost - typeWorth * numType2, regularCount1);
+            int remaining = cost - numType1 - typeWorth * numType2;
+            
+            if (remaining % typeWorth == 0) {
+                cout << remaining / typeWorth << endl;
+            } else if ((typeWorth - remaining % typeWorth) <= numType1) {
+                cout << (remaining / typeWorth) + 1 << endl;
+            } else {
+                cout << (remaining / typeWorth) + (remaining % typeWorth) << endl;
+            }
+        }
+    }
     return 0;
 }

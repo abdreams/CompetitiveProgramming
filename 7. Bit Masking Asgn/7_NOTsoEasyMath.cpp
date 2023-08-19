@@ -11,7 +11,7 @@ Input Format: The first line consists of number of test cases t.
 then follow t lines which consists of number n for each test case.
 Sample Input: 5
 5
-10
+10 
 12
 15
 18
@@ -22,3 +22,34 @@ Sample Output: 4
 14
 17
 */
+
+#include<bits/stdc++.h>
+#define ll long long
+using namespace std;
+
+int main(){
+#ifndef ONLINE_JUDGE
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
+#endif
+    ll t;
+    cin>>t;
+    
+    int primes[]={2,3,5,7,11,13,17,19};
+
+    while(t--){
+        ll num;
+        cin>>num;
+
+        ll subsets=(1>>8)-1;
+        ll ans=0;
+
+        for(ll i=1;i<=subsets;i++){
+            ll denom=1ll;
+            ll setbits=__builtin_popcount(1);
+            
+        }
+    }
+
+    return 0;
+}

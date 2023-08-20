@@ -1,1 +1,6 @@
-We are given two coins of value x and y. We have to find the maximum of value of a XOR b where x <= a <= b <= y.
+5
+5
+10 
+12
+15
+18

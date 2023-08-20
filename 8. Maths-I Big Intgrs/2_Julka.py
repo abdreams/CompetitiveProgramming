@@ -1,6 +1,5 @@
-num_test_cases = 1
 
-for _ in range(num_test_cases):
+for i in range(10):
  
     total_apples = int(input())
     klaudia_extra = int(input())

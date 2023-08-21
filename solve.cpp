@@ -1,65 +1,108 @@
-#include<bits/stdc++.h>
-#include <ext/pb_ds/assoc_container.hpp>
-using namespace __gnu_pbds;
+// #include<bits/stdc++.h>
+
+// using namespace std;
+// vector<string>substrings;
+
+// void generateSubstrings(const string& str) {
+//     int n = str.length();
+
+//     for (int mask = 1; mask < (1<<n); ++mask) {
+//         string temp="";
+//         for (int i = 0; i < n; ++i) {
+//             if (mask & (1 << i)) {
+//                 temp+= str[i];
+//             }
+//         }
+//         substrings.push_back(temp);
+//     }
+// }
+
+
+// int main(){
+// #ifndef ONLINE_JUDGE
+//     freopen("input.txt","r",stdin);
+//     freopen("output.txt","w",stdout);
+// #endif
+//     string s;
+//     cin>>s;
+//     int n=s.length();
+//     generateSubstrings(s);
+//     for(int i=0;i<(1<<n);i++){
+//         cout<<substrings[i]<<endl;
+//     }
+//     int sum=0;
+//     for(int i=0;i<(1<<n);i++){
+//         int num=stoi(substrings[i]);
+//         cout<<num<<endl;
+//         sum+=num;
+//         cout<<i<<"th sum is: "<< sum<<endl;
+//     }
+//     cout<<"sum is"<<sum<<endl;
+//     return 0;
+// }
+
+
+#include <bits/stdc++.h>
 using namespace std;
 
-#define ff              first
-#define ss              second
-#define int             long long
-#define pb              push_back
-#define mp              make_pair
-#define mt              make_tuple
-#define pii             pair<int,int>
-#define vi              vector<int>
-#define mii             map<int,int>
-#define pqb             priority_queue<int>
-#define pqs             priority_queue<int,vi,greater<int> >
-#define setbits(x)      __builtin_popcountll(x)
-#define mod             1000000007
-#define inf             1e18
-#define ps(x,y)         fixed<<setprecision(y)<<x
-#define mk(arr,n,type)  type *arr=new type[n];
-#define range(a,b)        substr(a,b-a+1)
-#define w(x)            int x; cin>>x; while(x--)
-#define trace(x)         cerr<<#x<<": "<<x<<" "<<endl;
+void findSumOfExpressions(string S, int N)
+{
 
-mt19937                 rng(chrono::steady_clock::now().time_since_epoch().count());
+unsigned long long sumOfExp = 0;
 
-typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds;
+for (int i = 0; i < pow(2, N - 1); i++) {
 
-void ab_d(){
-    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+	unsigned long long ans_sub = 0;
+
+
+	string subst = string(1, S.at(0));
+    cout<<subst<<endl;
+
+
+	for (int j = 0; j < N - 1; j++) {
+
+	if (((i >> j) & 1) == 1) {
+
+		ans_sub += stoull(subst);
+
+		subst = string(1, S.at(j + 1));
+        // cout<<subst<<endl;
+	}
+	else
+
+		subst += S.at(j + 1);
+
+	if (j == N - 2)
+		ans_sub += stoull(subst);
+	}
+
+
+	sumOfExp += ans_sub;
+}
+
+if (N == 1)
+	cout << S;
+else
+
+
+	cout << sumOfExp;
+}
+
+int main()
+{
 #ifndef ONLINE_JUDGE
     freopen("input.txt","r",stdin);
     freopen("output.txt","w",stdout);
 #endif
+
+
+string S = "123";
+
+
+int N = S.length();
+
+findSumOfExpressions(S, N);
 }
 
-int32_t main()
-{
-    ab_d();
-    int testCases;
-    cin >> testCases;
 
-    while (testCases--) {
-        int cost, typeWorth, regularCount1, regularCount2;
-        cin >> cost >> typeWorth >> regularCount1 >> regularCount2;
-        
-        if (regularCount1 >= cost || (cost % typeWorth <= regularCount1 && cost / typeWorth <= regularCount2)) {
-            cout << 0 << endl;
-        } else {
-            int numType2 = min(cost / typeWorth, regularCount2);
-            int numType1 = min(cost - typeWorth * numType2, regularCount1);
-            int remaining = cost - numType1 - typeWorth * numType2;
-            
-            if (remaining % typeWorth == 0) {
-                cout << remaining / typeWorth << endl;
-            } else if ((typeWorth - remaining % typeWorth) <= numType1) {
-                cout << (remaining / typeWorth) + 1 << endl;
-            } else {
-                cout << (remaining / typeWorth) + (remaining % typeWorth) << endl;
-            }
-        }
-    }
-    return 0;
-}
+

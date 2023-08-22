@@ -24,7 +24,6 @@ int32_t main() {
         return 0;
     }
     
-
     else {
 
     int flag=-1;

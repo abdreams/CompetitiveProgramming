@@ -1,0 +1,148 @@
+Quiz questions
+
+0. Title: maths Modular Exponentiation
+Description: Given below the code to calculate the Modular Exponentiation(x^y % mod) fastly. What is the time complexity of this?
+```
+int power( int x, int y, int mod ) 
+{ 
+    int res = 1;
+    x = x % mod;
+    while (y > 0) 
+    { 
+        if (y & 1) 
+            res = (res*x) % mod;;
+        y = y>>1; 
+        x = (x*x) % mod;;   
+    } 
+    return res; 
+}
+```
+
+
+0.O(log(x))
+1.O(log(y)) -- 
+2.O(x)
+3.O(y)
+
+
+
+1. Title: math matrix expon
+Description: If we <b>n</b> times multiply the matrix <b>M</b> to itself (in other words calculate <b>power(M, n )</b>), then we get the <b>(n+1)th</b> Fibonacci number as the element at row and column (0, 0) in the resultant matrix. Matrix M is?
+
+0.M = {{1,1}, {0,1}}
+1.M = {{1,1}, {1,0}} --
+2.M = {{1,0}, {1,1}}
+3.M = {{0,1}, {1,1}} 
+
+
+
+2. Title: math pigeonhole1
+Description: Six distinct positive integers are randomly chosen between 1 and 2006, inclusive. What is the probability that some pair of these integers has a difference that is a multiple of 5?
+
+0.3/5
+1.1/2
+2.4/5 
+3.1 --
+
+For two numbers to have a difference that is a multiple of $5$, the numbers must be congruent $\bmod{5}$ (their remainders after division by $5$ must be the same).
+
+$0, 1, 2, 3, 4$ are the possible values of numbers in $\bmod{5}$. Since there are only $5$ possible values in $\bmod{5}$ and we are picking $6$ numbers, by the Pigeonhole Principle, two of the numbers must be congruent $\bmod{5}$.
+
+Therefore the probability that some pair of the $6$ integers has a difference that is a multiple of $5$ is 1
+
+
+
+3. Title: math pigeonhole2
+Description: From the set of numbers s={1, 2, 3, 4}, how many minimum numbers must be selected to guarantee that at least one pair of these numbers has a sum equal to 7?
+
+https://edurev.in/question/3283068/How-many-numbers-must-be-selected-from-the-set-%7B1--2--3--4%7D-to-guarantee-that-at-least-one-pair-of-t
+
+0.5
+1.7 
+2.4 --
+3.14
+
+
+
+
+
+4. Title: math expected value
+Description: A dice is rolled 12 times independently. What is the expected value of the sum of the faces that rolled to the top?
+
+0.12
+1.21
+2.42 --
+3.60
+
+
+
+5. Title: math Bernaulli's Trial
+Description: The probability of a cricket team winning a match is 0.6. Calculate the probability that the team will win at least one match out of three.
+
+0.0.815
+1.0.027
+2.0.973
+3.0.936 --
+
+
+
+6. Title: math probabilty - boxes
+Description: Initially, you are given 2 boxes, 50 red balls and 50 blue balls. <br>You have to distribute all the balls in the two boxes. After distributing the balls, a box will be randomly selected and randomly a ball will be picked from that selected box. You will distribute the balls in such a way to maximize the chance of picking red ball. Maximum probability of picking the red ball you can get from this scheme is?
+
+0.0.5
+1.0.75
+2.0.747 --
+3.0.821
+
+
+
+7. Title: math probability3
+Description: In how many ways 5 men and 3 women can sit together on a circle such that a particular men <b>m1</b> and particular women <b>w1</b> never sit adjacent to each other?
+
+0.7200
+1.40320
+2.3600 --
+3.2400
+
+
+Subtracting, we have 7!−6!×2=6!(7−2)=5×6! ways in total
+
+
+8. Title: math probability2
+Description: Three ants are sitting at the three corners of an equilateral triangle. Each ant starts randomly picks a direction and starts to move along the edge of the triangle. What is the probability that none of the ants collide?
+
+0.0.50
+1.0.75
+2.0.25 --
+3.0.33
+
+
+
+9. Title: math10
+Description: Let <b>x = a\*5 + b\*11</b> , where <b>a>0</b> and <b>b>0</b>.
+
+What is the largest value of <b>x</b> that can not be made?
+
+0.41
+1.39 --
+2.35
+3.51
+
+https://www.geeksforgeeks.org/frobenius-coin-problem/
+
+This problem is related to the Coin Change problem, which involves finding the largest value that cannot be formed using a specific set of coin denominations. 
+
+This problem can be solved using a mathematical approach called the "Frobenius Coin Problem" or "Chicken McNugget Theorem". The theorem states that the largest integer that cannot be expressed as a sum of non-negative multiples of two coprime integers 
+
+ (in this case, 5 and 11) is given by:
+
+largest impossible value
+
+largest impossible value=m×n−m−n
+
+For your case, 
+
+largest impossible value
+39
+largest impossible value=5×11−5−11=39
+

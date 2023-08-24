@@ -1,5 +1,7 @@
 /*Problem Name: MARBLES
 https://www.codechef.com/problems/CODEBU13
+https://medium.com/@svaish97/code-chef-marbles-solution-approach-1373ad768ea7
+
 
 Problem Difficulty: 2
 Problem Constraints: 1<=T<=100 <br>
@@ -56,6 +58,8 @@ int main() {
  }
  return 0;
 }
+// formula applied n+r-1 c r where n=k r=n-k
+
 /*
 
 The key to this is that we only care about the number of times an object has been selected, so it is possible to imagine modeling a choice by placing r stars into n bins. For example say you have to pick 3 ice cream scoops from 8 total to go on your cone. Of course you are allowed to have repeat flavours and we don't really care what order they are in on the cone. We imagine creating the 8 flavour categories by separating them with 7 bars |. This looks like

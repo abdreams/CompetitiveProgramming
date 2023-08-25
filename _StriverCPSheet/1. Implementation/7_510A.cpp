@@ -24,7 +24,6 @@ int main(){
                 else{
                     if(j==0) cout<<"#";
                     else cout<<".";
-                    
                 }
                 
             }

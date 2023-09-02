@@ -1,6 +1,1 @@
-1
-4 7
-vbickda
-vbickda
-vbickda
-vbickda
+7 5 100

@@ -4,74 +4,42 @@ using namespace std;
 
 int main(){
 #ifndef ONLINE_JUDGE
-	freopen("input.txt","r",stdin);
-	freopen("output.txt","w",stdout);
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
 #endif
-	int t;
-	cin>>t;
-	while (t--)
-	{
-		int n,m;
-		cin>>n>>m;
-		vector<vector<char>>strings(n+1,vector<char>(m+1));
-		for(int i=0;i<n;i++){
-			for(int j=0;j<m;j++){
-				cin>>strings[i][j];
-			}
-		}
-		int vpos=-1;
-		int ipos=-1;
-		int kpos=-1;
-		int apos=-1;
-		string temp;
+    int t;
+    cin>>t;
 
-		int j;
-		for(j=0;j<m;j++){
-			for(int i=0;i<n;i++){
-				if(strings[i][j]=='v'){
-					temp+='v';
-					j++;
-					break;
-					cout<<j<<endl;
-				}
-			}
-		}
-		for(j;j<m;j++){
-			for(int i=0;i<n;i++){
-				if(strings[i][j]=='i'){
-					temp+='i';
-					j++;
-					break;
-				}
-			}
-		}
-		for(j;j<m;j++){
-			for(int i=0;i<n;i++){
-				if(strings[i][j]=='k'){
-					temp+='k';
-					j++;
-					break;
-				}
-			}
-		}
-		
-		for(j;j<m;j++){
-			for(int i=0;i<n;i++){
-				if(strings[i][j]=='a'){
-					temp+='a';
-					j++;
-					break;
-				}
-			}
-		}
+    while(t--){
+    string s1, s2; 
+    cin >> s1 >> s2; 
+    
+    if (s1[0] != s2[0] && s1[s1.size() - 1] != s2[s2.size() - 1]) 
+    { 
+    cout << "NO" << endl; 
+    
+    } 
+    
+    if (s1[0] == s1[s1.size() - 1] && s2[0] == s2[s1.size() - 1] && s1[0] == s2[0]) 
+    { 
+        cout << "YES" << endl; 
+    
+    }
+    
+    int f = 0; 
+    
+    for (int i = 0; i < s1.size() - 1; i++) 
+    { 
+    if (s1[i] == s1[0] && s2[i] == s1[0] && s1[i + 1] == s2[i + 1] && s1[i + 1] == s1[s1.size() - 1]) 
+    f = 1; 
+    } 
+    
+    if (f == 0) 
+    cout << "NO" << endl; 
+    else 
+    cout << "YES" << endl; 
+    }
+    
 
-	
-
-		cout<<temp<<endl;
-		
-		
-	}
-	
-
-	return 0;
+    return 0;
 }

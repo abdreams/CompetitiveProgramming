@@ -1,1 +1,2 @@
-Modular multiplicative inverse is 6
+2
+6

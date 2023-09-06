@@ -21,20 +21,16 @@ void extedned_euclids(int a,int b){
     y=cY;
 }
 
-int multiplicative_modulo_inverse(int a,int m){
-    extedned_euclids(a,m);
-    return (x+m)%m;
-}
-
 int main(){
 #ifndef ONLINE_JUDGE
     freopen("input.txt","r",stdin);
     freopen("output.txt","w",stdout);
 #endif
-    cout<<multiplicative_modulo_inverse(18,7)<<endl; //  18*'2' % 7 ==1
-    cout<<multiplicative_modulo_inverse(6,7)<<endl; // 6*'6' % 7 ==1
+    int a,b;
+    cin>>a>>b;
 
-    //note that there only exists a modulo inv iff gcd of both nums is 1.
+    extedned_euclids(a,b);
 
+    cout<<x<<" "<<y<<endl;
     return 0;
 }

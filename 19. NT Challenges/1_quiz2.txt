@@ -1,0 +1,160 @@
+@csalgo
+
+Quiz questions
+
+0. Title: number theory euclid gcd
+Description: Given below the Euclid’s algorithm to calculate GCD of two numbers. What is the time complexity of this?
+```
+int GCD( int A, int B )
+ {
+    if( B==0 )
+        return A;
+    else
+        return GCD( B, A % B );
+}
+```
+
+0.O(max(A, B))
+1.O(min(A, B))
+2.O(A+B)
+3.O(log(min(A, B))) --
+
+
+
+1. Title: number theory sieve
+Description: The Sieve of Eratosthenes can be used to find all the prime numbers less than or equal to a given number N. What is the time complexity of this algorithm?
+
+0.O(N)
+1.O(sqrt(N))
+2.O(N*log(N))
+3.O(N*log(N)*log(N)))--
+
+
+
+2. Title: number theory gcd lcm
+Description: Choose the correct relation between LCM(a, b) and GCD(a, b) :-
+
+0.LCM(a, b) x a = GCD(a, b) x b
+1.LCM(a, b) = (a + b) / GCD(a, b)
+2.LCM(a, b) = (a x b) / GCD(a, b) --
+3.LCM(a, b) + GCD(a, b) = (a + b)
+
+
+
+3. Title: number theory expression
+Description: Which of the following number divides (2<sup>70</sup>+3<sup>70</sup>)
+
+0.7
+1.5
+2.13 --
+3.11
+
+
+
+4. Title: number theory euler totient
+Description: Choose the correct property of Euler’s Totient Function :-
+
+0.Sum of values of totient functions of all divisors of n is equal to n.
+1.Φ(n) for an input n is count of numbers in {1, 2, 3, …, n} that are relatively prime to n --
+2.for a prime number p, Φ(p) is p-1
+3.All of the above are correct
+
+
+
+5. Title: number theory fermats little
+Description: Which of the following can be deduced with the help of Fermat’s Little Theoram
+
+0.if p is a prime number, then for any integer a, the number a<sup>p</sup> – a is an integer multiple of p.
+1.if p is a prime number, and any integer a is not divisible by p than, a<sup>p-1</sup>%p=1 --
+2.if m is prime, a<sup>-1</sup> (mod m) ≡ a<sup>m-2</sup> (mod m)
+3.All of the above statements are true
+
+
+
+6. Title: number theory crt application
+Description: What could be the minimum value of X which satisfy following conditions?
+
+<b>X%3=2
+
+X%4=2
+
+X%5=1</b> 
+
+
+0.26 --
+1.16
+2.86
+3.146
+
+
+
+7. Title: number theory modular airthmetic
+Description: Which of the following property is not true w.r.t Modular Airthmetic :-
+
+0.(a*b)%m=a%m * b%m
+1.(a+b)%m=a%m + b%m
+2.(a-b)%m=a%m - b%m
+3.(a/b)%m = (a%m) / (b%m)
+
+
+
+8. Title: number theory gcd lcm posiible pairs
+Description: How many ordered pairs of two numbers are possible such that LCM = 120 and GCD = 2?
+
+0.6
+1.10
+2.4
+3.8
+
+
+
+9. Title: number theory choose incorrect
+Description: Choose the incorrect statement :-
+
+0.A number of form 2<sup>N</sup> has exactly N+1 divisors
+1.No three positive integers a, b, c satisfy the equation, a<sup>n</sup> + b<sup>n</sup> = c<sup>n</sup> for any integer value of n greater than 2
+2.GCD of two consecutive natural numbers is always 1
+3.Every integer greater than 2 can be expressed as the sum of two primes.
+
+
+
+10. Title: Number Theory Fermat's Little Theorem Application
+Description: Calculate (1<sup>47</sup>+2<sup>47</sup>+3<sup>47</sup>+4<sup>47</sup>+5<sup>47</sup>+6<sup>47</sup>)%7 ?
+
+0.0
+1.1
+2.3
+3.2
+
+
+
+11. Title: Number Theory puzzle
+Description: Suppose there are N boxes lying in the row numbered from 1 to N.
+
+Initially, all boxes are closed.
+
+A person walks through multiple times and alters the states of the boxes. 
+
+Alter the states means the person opens a box that is already closed and closes a box that is already opened. 
+
+In the first go, the person alters the statesof boxes numbered 1, 2, 3, … , N.
+
+In the second go, he alters the states of boxes numbered 2, 4, 6 … 
+
+In the third go, he alters the states of boxes numbered 3, 6, 9 … 
+
+This continues till the N'th go in which he alter the state of a box numbered N only. 
+
+Find the number of open boxes at the end of the procedure?
+
+
+0.N/3
+1.N/2 
+2.sqrt(N)
+3.N-1
+
+
+
+
+
+@csalgo Telegram

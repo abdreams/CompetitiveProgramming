@@ -12,3 +12,4 @@ Sample Input: 3
 Output Format: Integral value representing the multiplicative inverse.
 Sample Output: 333333336
 */
+

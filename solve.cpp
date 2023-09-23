@@ -1,4 +1,4 @@
-////////////////////////// Trust the process :D ////////////////////////////
+// Trust the Process :D //
 
 #include<bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -35,14 +35,11 @@ void ab_d(){
 	freopen("input.txt","r",stdin);
 	freopen("output.txt","w",stdout);
 #endif
-	
 }
 
 int32_t main()
-{	int t;
-	cin>>t;
-	while(t--)
-		ab_d();
+{
+	ab_d();
 
 	return 0;
 }

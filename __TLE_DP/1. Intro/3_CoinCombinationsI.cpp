@@ -1,10 +1,29 @@
 //https://cses.fi/problemset/task/1635/
 
 #include <bits/stdc++.h>
-#define int long long
+#include <ext/pb_ds/assoc_container.hpp>
+using namespace __gnu_pbds;
 using namespace std;
 
+#define int long long
+#define setbits(x)      __builtin_popcountll(x)
+#define mod             1000000007
+#define inf             1e18
+#define w(x)            int x; cin>>x; while(x--)
+
+typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds;
+
+
 const int MOD = 1000000007;
+
+
+void ab_d(){
+    ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
+#ifndef ONLINE_JUDGE
+    freopen("input.txt","r",stdin);
+    freopen("output.txt","w",stdout);
+#endif
+}
 
 int solve(int target, vector<int> &coins, vector<int> &dp) {
     if (target == 0) return 1;
@@ -22,10 +41,7 @@ int solve(int target, vector<int> &coins, vector<int> &dp) {
 }
 
 int32_t main() {
-#ifndef ONLINE_JUDGE
-    freopen("input.txt", "r", stdin);
-    freopen("output.txt", "w", stdout);
-#endif
+ab_d();
 
     int n;
     cin >> n;

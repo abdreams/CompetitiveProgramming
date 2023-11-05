@@ -7,17 +7,16 @@ fine no of strings of lenght n which have no consecutive 1s
 using namespace std;
 
 int solve(int n, bool one_status){
-    if(n==0) return 1; // solve(3,true)->solve(2,false)->
-    if(n<0) return 0;
-
-    int take_one=0;
-
-    if(one_status)
-        take_one=solve(n-1,!one_status);
-    int take_zero=solve(n-1,!one_status);
-    int take_zero_cont_zero=solve(n-1,one_status);
-
-    return take_one+take_zero+take_zero_cont_zero;
+        if(n==0) return 1; 
+        if(n<0) return 0;
+    
+        int take_one=0;
+    
+        if(one_status)
+            take_one=solve(n-1,false);
+        int take_zero=solve(n-1,true);
+    
+        return take_one+take_zero;
 }
 
 int solve2(int n){

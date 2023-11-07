@@ -13,6 +13,8 @@ using namespace std;
 #define mod             1000000007
 #define inf             1e18
 #define w(x)            int x; cin>>x; while(x--)
+#define  endl "\n"
+
 
 typedef tree<int, null_type, less<int>, rb_tree_tag, tree_order_statistics_node_update> pbds;
 

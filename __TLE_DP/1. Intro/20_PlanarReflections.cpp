@@ -1,6 +1,6 @@
 // semper fi //
 // abdreams //
-// 
+// https://codeforces.com/contest/1498/problem/C
 
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -24,8 +24,32 @@ void ab_d(){
 #endif
 }
 
+vector<vector<int>>dp;
+
+
+int solve(int fwd_mirrors, int bk_mirrors, int decay){
+    
+    if(decay==1 or fwd_mirrors==0){
+        return 1;
+    }
+
+    if(dp[fwd_mirrors][decay]!=-1) return dp[fwd_mirrors][decay];
+
+    return
+    dp[fwd_mirrors][decay]=
+    (solve(bk_mirrors,fwd_mirrors,decay-1)+solve(fwd_mirrors-1,bk_mirrors+1,decay))%mod;
+}
+
+
 int32_t main(){
 ab_d();
+    w(t){
+        int n,k;
+        cin>>n>>k;
+        dp.assign(n+5, vector<int>(k+5,-1));
+        cout<<solve(n,0,k)<<endl;
+      
+    }
 
     return 0;
 }

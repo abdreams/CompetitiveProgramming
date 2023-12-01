@@ -1,36 +1,40 @@
-void dfs(int node,int par,vector<vector<int>>&adj,vector<int>&vis,vector<int>&dfss){
-    vis[node]=1;
-    dfss.push_back(node);
-    for(auto it:adj[node]){
-        if(!vis[it]){
-            vis[it]=1;
-            dfs(it, node, adj, vis,dfss);
+class Solution {
+public:
+    bool issafeNqueen(vector<string> &soln,int col, int row, int n){
+        for(int l = 0 ; l < n ; l++){
+            if(soln[l][col]=='Q') return false;
+        }
+
+        for(int i=row-1, j=col-1; i>=0 && j>=0; i--, j--){
+            if(soln[i][j] == 'Q'){
+                return false;
+            }
+        }
+        for(int i=row-1, j=col+1; i>=0 && j<n; i--, j++){
+            if(soln[i][j] == 'Q'){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    void solve(vector<vector<string>> &board,int n,int row,vector<string> &soln){
+        if(row==n){
+            board.push_back(soln);
+            return;
+        }
+        for(int i = 0 ; i < n ; i++){
+            if(issafeNqueen(soln,i,row,n)){
+                soln[row][i] = 'Q';
+                solve(board,n,row+1,soln);
+                soln[row][i] = '.';
+            }
         }
     }
-}
-
-
-vector<vector<int>> depthFirstSearch(int V, int E, vector<vector<int>> &edges)
-{
-    // Write your code here
-    vector<vector<int>>adj(V);
-
-    for(auto it:edges){
-        int par=it[0];
-        int neighbour=it[1];
-        adj[par].push_back(neighbour);
-        adj[neighbour].push_back(par);
+    vector<vector<string>> solveNQueens(int n) {
+        vector<vector<string>> board;
+        vector<string> soln(n, string(n,'.'));
+        solve(board,n,0,soln);
+        return board;
     }
-
-    vector<int>vis(V,0);
-    vector<vector<int>>ans;
-    for(int i=0;i<V;i++){
-        if(!vis[i]){
-            vector<int>dfss;
-            dfs(i,-1,adj,vis,dfss);
-            ans.push_back(dfss);
-
-        }
-    }
-    return ans;
-}
+};

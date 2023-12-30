@@ -2,7 +2,7 @@
 
 #include<bits/stdc++.h>
 #include<bitset>
-#define int long long
+#define int long long   
 
 using namespace std;
 int n=100000;

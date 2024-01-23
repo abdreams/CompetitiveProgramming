@@ -8,7 +8,6 @@
 using namespace __gnu_pbds;
 using namespace std;
 
-#define int long long
 #define setbits(x)      __builtin_popcountll(x)
 #define mod             1000000007
 #define inf             1e18
@@ -24,32 +23,46 @@ void ab_d(){
 #endif
 }
 
-int solve(int l,int r,int num_to_find,vector<int>&arr){
-    if(l<=r){
-        int mid=l+(r-l)/2;
-
-        if(arr[mid]==num_to_find) return mid;
-        if(arr[mid]>num_to_find) return solve(l,mid-1,num_to_find,arr);
-        else return solve(mid+1,r,num_to_find,arr);
-    }
-    return -1;
-}
-
 int32_t main(){
 ab_d();
+    deque<int> dq;
     int n;
     cin>>n;
-
-    int num_to_find;
-    cin>>num_to_find;
-
     vector<int>arr(n,0);
     for (int i = 0; i < n; i++)
     {
         cin>>arr[i];
+        dq.push_back(arr[i]);   
     }
+    int piyush=0;
+    int nimit=0;
+    while (!dq.empty())
+    {
+        int fr=dq.front();
+        int bk=dq.back();
+        if(fr>=bk){
+            piyush+=fr;
+            dq.pop_front();
+        }
+        else{
+            piyush+=bk;
+            dq.pop_back();
+        }
 
-    cout<<solve(0,n-1,num_to_find,arr);
+        int fr2=dq.front();
+        int bk2=dq.back();
+        if(fr2<bk2){
+            nimit+=fr;
+            dq.pop_front();
+        }
+        else{
+            nimit+=bk;
+            dq.pop_back();
+        }
+
+    }
+    cout<<piyush<<endl;
+    
 
     return 0;
 }

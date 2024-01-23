@@ -1,4 +1,6 @@
 // semper fi //
+// abdreams //
+// 
 
 #include <bits/stdc++.h>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -24,6 +26,14 @@ void ab_d(){
 
 int32_t main(){
 ab_d();
+    int n;
+    cin>>n;
+    vector<int>arr(n,0);
+    for (int i = 0; i < n; i++)
+    {
+        cin>>arr[i];
+    }
+    
 
     return 0;
 }

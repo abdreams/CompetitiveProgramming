@@ -26,6 +26,7 @@ void bubble_sort_recursive(int arr[],int n,int j){
     
 }
 
+
 int main(){
 #ifndef ONLINE_JUDGE
     freopen("input.txt","r",stdin);
@@ -34,7 +35,8 @@ int main(){
 
     int arr[] = {13, 46, 24, 52, 20, 9};
     int n=6;
-    bubble_sort_recursive(arr,n,0);
+    bubble_sort(arr,n);
+    // bubble_sort_recursive(arr,n,0);
     for(auto it:arr){
         cout<<it<<" ";
     }

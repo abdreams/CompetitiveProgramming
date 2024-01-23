@@ -3,8 +3,8 @@
 using namespace std;
 
 int solve(int n) {
-    if (n == 0) return 1; // Base case: There is one way to build a 0-length wall.
-    if (n < 0) return 0;  // Base case: There are no ways to build a negative-length wall.
+    if (n == 0) return 1;
+    if (n < 0) return 0;  
 
     int take_1x4=0;
     int take_4x1=0;
@@ -22,7 +22,7 @@ int main() {
     freopen("output.txt", "w", stdout);
 #endif
     
-    int n;
+    int n,m;
     cin >> n;
 
     int ans = solve(n);

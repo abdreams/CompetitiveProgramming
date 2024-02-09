@@ -1,1 +1,7 @@
-5 10 2 1
+3
+ababa
+baaba
+ab
+ba
+abc
+abc

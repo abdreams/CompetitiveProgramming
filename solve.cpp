@@ -1,53 +1,70 @@
-// C++ Code
-#include <bits/stdc++.h>
-using namespace std;
-#define MAX 50000000000
-#define int long long int
-int dp[5005][5005];
+/*lex program to implement 
+		- a simple calculator.*/
 
-int valentine(vector<int> &choc,vector<int> &candy,int i,int j){
-    if(i == choc.size()){
-        return 0 ;
-    }
-    if(j == candy.size()){
-        return INTMAX_MAX;
-    }
-    if(dp[i][j]!=-1){
-        return dp[i][j];
-    }
+% { 
+int op = 0,i; 
+float a, b; 
+% } 
 
-    int diff = abs(choc[i] - candy[j]) ;
-    int q1 = valentine(choc,candy,i+1,j+1) + diff;    
-    int q2 = valentine(choc,candy,i,j+1) ;                  
+dig [0-9]+|([0-9]*)"."([0-9]+) 
+add "+"
+sub "-"
+mul "*"
+div "/"
+pow "^"
+ln \n 
+%% 
 
-    return dp[i][j] = min(q1,q2);
- 
-}
+/* digi() is a user defined function */
+{dig} {digi();} 
+{add} {op=1;} 
+{sub} {op=2;} 
+{mul} {op=3;} 
+{div} {op=4;} 
+{pow} {op=5;} 
+{ln} {printf("\n The Answer :%f\n\n",a);} 
 
-int main() {
-    int n ; //No of boys
-    int m ; //No of girls
-    cin >> n >> m;
-    vector<int> choc;
-    vector<int> candy;
-    for(int i=0;i<n;i++){
-        int x;
-        cin >> x;
-        choc.push_back(x);
-    }
-    for(int i=0;i<m;i++){
-        int x;
-        cin >> x;
-        candy.push_back(x);
-    }
+%% 
+digi() 
+{ 
+if(op==0) 
 
-    memset(dp,-1,sizeof(dp));
+/* atof() is used to convert 
+	- the ASCII input to float */
+a=atof(yytext); 
 
-    sort(choc.begin(),choc.end());
-    sort(candy.begin(),candy.end());
+else
+{ 
+b=atof(yytext); 
 
-    cout << valentine(choc,candy,0,0) ;
+switch(op) 
+{ 
+    case 1:a=a+b; 
+        break; 
 
+    case 2:a=a-b; 
+        break; 
 
-    return 0;
-}
+    case 3:a=a*b; 
+        break; 
+
+    case 4:a=a/b; 
+        break; 
+
+    case 5:for(i=a;b>1;b--) 
+        a=a*i; 
+        break;  
+} 
+op=0; 
+} 
+} 
+
+main(int argv,char *argc[]) 
+{ 
+yylex(); 
+} 
+
+yywrap() 
+{ 
+return 1; 
+} 

@@ -1,37 +1,13 @@
-Certainly! Here's how you can set up routing for the sign-up and forgot password pages, and the corresponding components for each page.
-
-First, update your main application component to include routing:
-
-```javascript
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import SignIn from './SignIn';
-import SignUp from './SignUp';
-import ForgotPassword from './ForgotPassword';
-
-function App() {
-    return (
-        <Router>
-            <Switch>
-                <Route exact path="/" component={SignIn} />
-                <Route path="/signup" component={SignUp} />
-                <Route path="/forgot" component={ForgotPassword} />
-            </Switch>
-        </Router>
-    );
-}
-
-export default App;
-```
-
-Next, modify the `SignIn` component to use routing:
-
-```javascript
-import React from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 export default function SignIn() {
     const history = useHistory();
+    const [passwordVisible, setPasswordVisible] = useState(false);
+
+    const togglePasswordVisibility = () => {
+        setPasswordVisible(!passwordVisible);
+    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -49,12 +25,30 @@ export default function SignIn() {
                     </div>
                     <div className='flex flex-col mt-4'>
                         <label className='text-lg font-medium'>Password</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter your password"
-                            type="password"
-                            // Backend should fetch and validate the password state
-                        />
+                        <div className="relative">
+                            <input 
+                                className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                                placeholder="Enter your password"
+                                type={passwordVisible ? "text" : "password"}
+                                // Backend should fetch and validate the password state
+                            />
+                            <button
+                                type="button"
+                                className="absolute inset-y-0 right-4 flex items-center"
+                                onClick={togglePasswordVisibility}
+                            >
+                                {passwordVisible ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.613 5 12 5c4.387 0 8.268 2.943 9.542 7-.738 2.267-2.367 4.208-4.417 5.236m-2.961-1.418a9.935 9.935 0 01-2.164.182 9.935 9.935 0 01-2.164-.182m6.744 2.182A9.935 9.935 0 0112 19c-4.387 0-8.268-2.943-9.542-7" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A9.934 9.934 0 0112 19c-4.387 0-8.268-2.943-9.542-7 .738-2.267 2.367-4.208 4.417-5.236m2.961 1.418a9.935 9.935 0 012.164-.182c.747 0 1.488.063 2.214.182m-.49 6.566A3 3 0 0015 12a3 3 0 00-3-3m-1.707-1.707L7.052 7.052m-.68 8.74l-1.415 1.415M2 2l20 20" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <div className='mt-8 flex justify-between items-center'>
                         <div>
@@ -94,70 +88,4 @@ export default function SignIn() {
                         >
                             Sign up
                         </button>
-                        // Backend should handle sign up navigation
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-```
-
-Now, create the `SignUp` component similarly:
-
-```javascript
-import React from 'react';
-
-export default function SignUp() {
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className='w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100'>
-                <h1 className='text-5xl font-semibold'>Create Account</h1>
-                <p className='font-medium text-lg text-gray-500 mt-4'>Please fill in the details to create your account.</p>
-                <div className='mt-8'>
-                    <div className='flex flex-col'>
-                        <label className='text-lg font-medium'>Email</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter your email"
-                            // Backend should fetch and validate the email state
-                        />
-                    </div>
-                    <div className='flex flex-col mt-4'>
-                        <label className='text-lg font-medium'>Password</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter your password"
-                            type="password"
-                            // Backend should fetch and validate the password state
-                        />
-                    </div>
-                    <div className='mt-8 flex flex-col gap-y-4'>
-                        <button className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'>
-                            Sign up
-                        </button>
-                        // Backend should handle sign up on button click
-                    </div>
-                    <div className='mt-8 flex justify-center items-center'>
-                        <p className='font-medium text-base'>Already have an account?</p>
-                        <button 
-                            className='ml-2 font-medium text-base text-violet-500'
-                            onClick={() => history.push('/')}
-                        >
-                            Sign in
-                        </button>
-                        // Backend should handle sign in navigation
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-```
-
-And finally, create the `ForgotPassword` component:
-
-```javascript
-import React from 'react';
-
-export default function ForgotPassword
+                        // Backend

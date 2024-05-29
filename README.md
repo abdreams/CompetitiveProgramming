@@ -1,6 +1,38 @@
-import * as React from 'react';
+Certainly! Here's how you can set up routing for the sign-up and forgot password pages, and the corresponding components for each page.
 
-export default function Form() {
+First, update your main application component to include routing:
+
+```javascript
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import SignIn from './SignIn';
+import SignUp from './SignUp';
+import ForgotPassword from './ForgotPassword';
+
+function App() {
+    return (
+        <Router>
+            <Switch>
+                <Route exact path="/" component={SignIn} />
+                <Route path="/signup" component={SignUp} />
+                <Route path="/forgot" component={ForgotPassword} />
+            </Switch>
+        </Router>
+    );
+}
+
+export default App;
+```
+
+Next, modify the `SignIn` component to use routing:
+
+```javascript
+import React from 'react';
+import { useHistory } from 'react-router-dom';
+
+export default function SignIn() {
+    const history = useHistory();
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
             <div className='w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100'>
@@ -30,7 +62,12 @@ export default function Form() {
                             <label className='ml-2 font-medium text-base' htmlFor="remember">Remember for 30 days</label>
                             // Backend should handle remember me state
                         </div>
-                        <button className='font-medium text-base text-violet-500'>Forgot password</button>
+                        <button 
+                            className='font-medium text-base text-violet-500'
+                            onClick={() => history.push('/forgot')}
+                        >
+                            Forgot password
+                        </button>
                         // Backend should handle forgot password functionality
                     </div>
                     <div className='mt-8 flex flex-col gap-y-4'>
@@ -51,7 +88,10 @@ export default function Form() {
                     </div>
                     <div className='mt-8 flex justify-center items-center'>
                         <p className='font-medium text-base'>Don't have an account?</p>
-                        <button className='ml-2 font-medium text-base text-violet-500'>
+                        <button 
+                            className='ml-2 font-medium text-base text-violet-500'
+                            onClick={() => history.push('/signup')}
+                        >
                             Sign up
                         </button>
                         // Backend should handle sign up navigation
@@ -61,3 +101,63 @@ export default function Form() {
         </div>
     );
 }
+```
+
+Now, create the `SignUp` component similarly:
+
+```javascript
+import React from 'react';
+
+export default function SignUp() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className='w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100'>
+                <h1 className='text-5xl font-semibold'>Create Account</h1>
+                <p className='font-medium text-lg text-gray-500 mt-4'>Please fill in the details to create your account.</p>
+                <div className='mt-8'>
+                    <div className='flex flex-col'>
+                        <label className='text-lg font-medium'>Email</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter your email"
+                            // Backend should fetch and validate the email state
+                        />
+                    </div>
+                    <div className='flex flex-col mt-4'>
+                        <label className='text-lg font-medium'>Password</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter your password"
+                            type="password"
+                            // Backend should fetch and validate the password state
+                        />
+                    </div>
+                    <div className='mt-8 flex flex-col gap-y-4'>
+                        <button className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'>
+                            Sign up
+                        </button>
+                        // Backend should handle sign up on button click
+                    </div>
+                    <div className='mt-8 flex justify-center items-center'>
+                        <p className='font-medium text-base'>Already have an account?</p>
+                        <button 
+                            className='ml-2 font-medium text-base text-violet-500'
+                            onClick={() => history.push('/')}
+                        >
+                            Sign in
+                        </button>
+                        // Backend should handle sign in navigation
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+```
+
+And finally, create the `ForgotPassword` component:
+
+```javascript
+import React from 'react';
+
+export default function ForgotPassword

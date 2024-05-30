@@ -1,116 +1,153 @@
-To create this component in React using Chart.js, Tailwind CSS, and Material-UI, follow these steps:
+To implement the Portfolio Diversity chart and the navigation among different views (Allocation View, Bond Equity, and Asset Class) using React, Tailwind CSS, and Chart.js, you can follow these steps:
 
-1. **Set up the project**:
-   - Ensure you have Node.js installed.
-   - Create a new React project using `create-react-app`.
+1. **Set up your React project**: If you haven't already, create a new React project using Create React App or any other method you prefer.
 
 2. **Install the necessary dependencies**:
-   ```bash
-   npx create-react-app portfolio-diversity
-   cd portfolio-diversity
-   npm install chart.js react-chartjs-2 @mui/material @emotion/react @emotion/styled tailwindcss
-   ```
+   - `tailwindcss`: For styling
+   - `react-chartjs-2` and `chart.js`: For charts
 
-3. **Set up Tailwind CSS**:
-   - Create a `tailwind.config.js` file:
-     ```bash
-     npx tailwindcss init
-     ```
+3. **Configure Tailwind CSS**: Follow the Tailwind CSS setup guide for Create React App to configure Tailwind in your project.
 
-   - Configure `tailwind.config.js`:
-     ```javascript
-     /** @type {import('tailwindcss').Config} */
-     module.exports = {
-       purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
-       darkMode: false, // or 'media' or 'class'
-       theme: {
-         extend: {},
-       },
-       variants: {
-         extend: {},
-       },
-       plugins: [],
-     }
-     ```
+4. **Create components**: Create separate components for the Allocation View, Bond Equity, and Asset Class.
 
-   - Add the following to `src/index.css`:
-     ```css
-     @tailwind base;
-     @tailwind components;
-     @tailwind utilities;
-     ```
+5. **Use React hooks**: Use `useState` to manage the state of the current view and to store the sample portfolio data.
 
-4. **Create the component**:
-   - Create a file `src/components/PortfolioDiversity.js`.
+Here's the complete code:
 
-   ```javascript
-   import React from 'react';
-   import { Doughnut } from 'react-chartjs-2';
-   import { Card, CardContent, Typography, Button } from '@mui/material';
+### Step 1: Setting Up the Project
+```bash
+npx create-react-app portfolio-diversity
+cd portfolio-diversity
+npm install tailwindcss react-chartjs-2 chart.js
+```
 
-   const PortfolioDiversity = () => {
-     const data = {
-       labels: ['Stocks', 'Energy', 'Ecommerce', 'Funds', 'Big Tech'],
-       datasets: [
-         {
-           data: [12, 11, 12, 5, 60],
-           backgroundColor: ['#4CAF50', '#FF9800', '#03A9F4', '#E91E63', '#9C27B0'],
-           hoverBackgroundColor: ['#45a049', '#ff8c00', '#039be5', '#e91e63', '#8e24aa'],
-         },
-       ],
-     };
+### Step 2: Configure Tailwind CSS
+Follow the Tailwind CSS setup instructions for Create React App [here](https://tailwindcss.com/docs/guides/create-react-app).
 
-     return (
-       <Card className="max-w-sm mx-auto mt-10">
-         <CardContent>
-           <Typography variant="h6" component="div" className="mb-4">
-             Portfolio Diversity
-           </Typography>
-           <div className="flex justify-between mb-2">
-             <Button className="text-blue-500">Allocation view</Button>
-             <Button>Bond Equity</Button>
-             <Button>Asset Class</Button>
-           </div>
-           <Doughnut data={data} />
-           <div className="mt-4 text-center">
-             <div className="flex justify-center items-center">
-               <span className="material-icons">attach_money</span>
-               <Typography component="span" className="ml-2">TSLA accounts for 40% of your portfolio.</Typography>
-             </div>
-           </div>
-           <Button className="mt-4 w-full bg-blue-500 text-white">
-             You can read our guide on diversification
-           </Button>
-         </CardContent>
-       </Card>
-     );
-   };
+### Step 3: Create Components
 
-   export default PortfolioDiversity;
-   ```
+#### `App.js`
+```jsx
+import React, { useState } from 'react';
+import AllocationView from './components/AllocationView';
+import BondEquity from './components/BondEquity';
+import AssetClass from './components/AssetClass';
 
-5. **Use the component in your app**:
-   - Modify `src/App.js` to include the `PortfolioDiversity` component.
+function App() {
+  const [view, setView] = useState('AllocationView');
+  const sampleData = {
+    bigTech: 60,
+    stocks: 12,
+    energy: 11,
+    ecommerce: 12,
+    funds: 5,
+    tsla: 40
+  };
 
-   ```javascript
-   import React from 'react';
-   import PortfolioDiversity from './components/PortfolioDiversity';
-   import './index.css';
+  const renderView = () => {
+    switch (view) {
+      case 'AllocationView':
+        return <AllocationView data={sampleData} />;
+      case 'BondEquity':
+        return <BondEquity />;
+      case 'AssetClass':
+        return <AssetClass />;
+      default:
+        return <AllocationView data={sampleData} />;
+    }
+  };
 
-   const App = () => {
-     return (
-       <div className="App">
-         <PortfolioDiversity />
-       </div>
-     );
-   };
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center">
+      <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
+        <div className="flex justify-around mb-4">
+          <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
+          <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
+          <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
+        </div>
+        {renderView()}
+      </div>
+    </div>
+  );
+}
 
-   export default App;
-   ```
+export default App;
+```
 
-6. **Run your app**:
-   ```bash
-   npm start
-   ```
+#### `components/AllocationView.js`
+```jsx
+import React from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import 'chart.js/auto';
 
-This will create a component similar to the image you provided, using Chart.js for the doughnut chart, Material-UI for the card and typography, and Tailwind CSS for additional styling. Adjust the styles and data as needed to fit your specific requirements.
+function AllocationView({ data }) {
+  const chartData = {
+    labels: ['Big Tech', 'Stocks', 'Energy', 'Ecommerce', 'Funds'],
+    datasets: [
+      {
+        data: [data.bigTech, data.stocks, data.energy, data.ecommerce, data.funds],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
+      }
+    ]
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Portfolio Diversity</h2>
+      <Doughnut data={chartData} />
+      <p className="mt-4 text-center">
+        <span className="font-bold">TSLA</span> accounts for <span className="font-bold">{data.tsla}%</span> of your portfolio.
+      </p>
+      <a href="#" className="block mt-2 text-blue-500 underline text-center">You can read our guide on diversification</a>
+    </div>
+  );
+}
+
+export default AllocationView;
+```
+
+#### `components/BondEquity.js`
+```jsx
+import React from 'react';
+
+function BondEquity() {
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Bond Equity</h2>
+      {/* Add relevant content for Bond Equity here */}
+      <p className="text-center">Bond Equity content goes here.</p>
+    </div>
+  );
+}
+
+export default BondEquity;
+```
+
+#### `components/AssetClass.js`
+```jsx
+import React from 'react';
+
+function AssetClass() {
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-2">Asset Class</h2>
+      {/* Add relevant content for Asset Class here */}
+      <p className="text-center">Asset Class content goes here.</p>
+    </div>
+  );
+}
+
+export default AssetClass;
+```
+
+### Step 4: Tailwind CSS Configuration
+Ensure you have Tailwind CSS configured correctly in your project. Your `tailwind.config.js` should be set up as per the Tailwind CSS setup guide.
+
+### Running the Project
+After setting everything up, you can run your project using:
+```bash
+npm start
+```
+
+This should give you a working implementation of the Portfolio Diversity component with navigation among different views using React, Tailwind CSS, and Chart.js.

@@ -1,30 +1,10 @@
-To implement the Portfolio Diversity chart and the navigation among different views (Allocation View, Bond Equity, and Asset Class) using React, Tailwind CSS, and Chart.js, you can follow these steps:
+Sure! We'll create sample data for the Bond Equity and Asset Class views and integrate them similarly to how we did for the Allocation View. We'll also ensure that the navigation among these views works seamlessly.
 
-1. **Set up your React project**: If you haven't already, create a new React project using Create React App or any other method you prefer.
+### Step 1: Update Sample Data
 
-2. **Install the necessary dependencies**:
-   - `tailwindcss`: For styling
-   - `react-chartjs-2` and `chart.js`: For charts
+Update the sample data to include information for Bond Equity and Asset Class.
 
-3. **Configure Tailwind CSS**: Follow the Tailwind CSS setup guide for Create React App to configure Tailwind in your project.
-
-4. **Create components**: Create separate components for the Allocation View, Bond Equity, and Asset Class.
-
-5. **Use React hooks**: Use `useState` to manage the state of the current view and to store the sample portfolio data.
-
-Here's the complete code:
-
-### Step 1: Setting Up the Project
-```bash
-npx create-react-app portfolio-diversity
-cd portfolio-diversity
-npm install tailwindcss react-chartjs-2 chart.js
-```
-
-### Step 2: Configure Tailwind CSS
-Follow the Tailwind CSS setup instructions for Create React App [here](https://tailwindcss.com/docs/guides/create-react-app).
-
-### Step 3: Create Components
+### Step 2: Create Chart Data and Components
 
 #### `App.js`
 ```jsx
@@ -36,24 +16,36 @@ import AssetClass from './components/AssetClass';
 function App() {
   const [view, setView] = useState('AllocationView');
   const sampleData = {
-    bigTech: 60,
-    stocks: 12,
-    energy: 11,
-    ecommerce: 12,
-    funds: 5,
-    tsla: 40
+    allocation: {
+      bigTech: 60,
+      stocks: 12,
+      energy: 11,
+      ecommerce: 12,
+      funds: 5,
+      tsla: 40
+    },
+    bondEquity: {
+      bonds: 50,
+      equities: 50
+    },
+    assetClass: {
+      realEstate: 25,
+      commodities: 25,
+      crypto: 25,
+      others: 25
+    }
   };
 
   const renderView = () => {
     switch (view) {
       case 'AllocationView':
-        return <AllocationView data={sampleData} />;
+        return <AllocationView data={sampleData.allocation} />;
       case 'BondEquity':
-        return <BondEquity />;
+        return <BondEquity data={sampleData.bondEquity} />;
       case 'AssetClass':
-        return <AssetClass />;
+        return <AssetClass data={sampleData.assetClass} />;
       default:
-        return <AllocationView data={sampleData} />;
+        return <AllocationView data={sampleData.allocation} />;
     }
   };
 
@@ -110,13 +102,26 @@ export default AllocationView;
 #### `components/BondEquity.js`
 ```jsx
 import React from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import 'chart.js/auto';
 
-function BondEquity() {
+function BondEquity({ data }) {
+  const chartData = {
+    labels: ['Bonds', 'Equities'],
+    datasets: [
+      {
+        data: [data.bonds, data.equities],
+        backgroundColor: ['#FF6384', '#36A2EB'],
+        hoverBackgroundColor: ['#FF6384', '#36A2EB']
+      }
+    ]
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Bond Equity</h2>
-      {/* Add relevant content for Bond Equity here */}
-      <p className="text-center">Bond Equity content goes here.</p>
+      <Doughnut data={chartData} />
+      <p className="mt-4 text-center">Bond Equity distribution in your portfolio.</p>
     </div>
   );
 }
@@ -127,13 +132,26 @@ export default BondEquity;
 #### `components/AssetClass.js`
 ```jsx
 import React from 'react';
+import { Doughnut } from 'react-chartjs-2';
+import 'chart.js/auto';
 
-function AssetClass() {
+function AssetClass({ data }) {
+  const chartData = {
+    labels: ['Real Estate', 'Commodities', 'Crypto', 'Others'],
+    datasets: [
+      {
+        data: [data.realEstate, data.commodities, data.crypto, data.others],
+        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
+        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+      }
+    ]
+  };
+
   return (
     <div>
       <h2 className="text-xl font-semibold mb-2">Asset Class</h2>
-      {/* Add relevant content for Asset Class here */}
-      <p className="text-center">Asset Class content goes here.</p>
+      <Doughnut data={chartData} />
+      <p className="mt-4 text-center">Asset Class distribution in your portfolio.</p>
     </div>
   );
 }
@@ -141,13 +159,16 @@ function AssetClass() {
 export default AssetClass;
 ```
 
-### Step 4: Tailwind CSS Configuration
-Ensure you have Tailwind CSS configured correctly in your project. Your `tailwind.config.js` should be set up as per the Tailwind CSS setup guide.
+### Step 3: Tailwind CSS Configuration
+
+Ensure your Tailwind CSS is properly configured by following the setup guide and adding the required configurations in your `tailwind.config.js` file.
 
 ### Running the Project
-After setting everything up, you can run your project using:
+
+After setting everything up, run your project using:
+
 ```bash
 npm start
 ```
 
-This should give you a working implementation of the Portfolio Diversity component with navigation among different views using React, Tailwind CSS, and Chart.js.
+This will give you a working implementation with separate components for Allocation View, Bond Equity, and Asset Class, each displaying its respective data using React, Tailwind CSS, and Chart.js.

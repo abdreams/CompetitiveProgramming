@@ -1,10 +1,9 @@
-Got it! We'll adjust the layout to place the table and the graph in separate containers with some space between them.
+To align the `PortfolioTable` and `PortfolioDiversity` components side by side, we need to update the CSS to use a flexbox layout with `flex-row` instead of `flex-col`.
 
-### Step 1: Adjust the Layout in `Portfolio.jsx`
+Here's the corrected `Portfolio.jsx` to ensure the table and the portfolio diversity graph are displayed side by side:
 
-Here's the updated `Portfolio.jsx`:
+### Updated `Portfolio.jsx`
 
-#### `pages/Portfolio.jsx`
 ```jsx
 import React, { useState } from 'react';
 import PortfolioTable from '../components/PortfolioTable';
@@ -65,12 +64,14 @@ function Portfolio() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 space-y-4">
-      <div className="w-full max-w-4xl">
-        <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
-      </div>
-      <div className="w-full max-w-md">
-        <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
+    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
+      <div className="flex w-full max-w-6xl space-x-4">
+        <div className="w-1/2">
+          <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
+        </div>
+        <div className="w-1/2">
+          <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
+        </div>
       </div>
     </div>
   );
@@ -80,15 +81,14 @@ export default Portfolio;
 ```
 
 ### Explanation
-- **`min-h-screen`**: Ensures the component takes at least the full height of the viewport.
-- **`flex flex-col items-center p-4 space-y-4`**: Centers the content, aligns items in a column, and adds some padding and vertical space between the components.
-- **`w-full max-w-4xl`** and **`w-full max-w-md`**: Defines the width constraints for the table and the diversity components separately.
 
-With this layout, the `PortfolioTable` and `PortfolioDiversity` components will be displayed separately with some space between them.
+- **`flex justify-center items-center p-4`**: Centers the content and adds some padding.
+- **`flex w-full max-w-6xl space-x-4`**: Defines the main container with a max width and ensures space between the child elements using `space-x-4`.
+- **`w-1/2`**: Splits the container into two equal parts for the table and the diversity components.
 
-### Step 2: Update the Components to Ensure Proper Layout
+### Components
 
-Ensure your components `PortfolioTable`, `PortfolioDiversity`, `AllocationView`, `BondEquity`, and `AssetClass` are properly styled for this layout.
+Ensure your components `PortfolioTable` and `PortfolioDiversity` have appropriate styles. The previous implementations should work without any changes, but ensure they fit within their respective containers.
 
 #### `components/PortfolioTable.js`
 ```jsx
@@ -162,4 +162,4 @@ function PortfolioDiversity({ portfolio }) {
 export default PortfolioDiversity;
 ```
 
-This layout will place the table and the portfolio diversity graph in separate containers, providing some space between them and making it visually cleaner.
+With these changes, the `PortfolioTable` and `PortfolioDiversity` components should be displayed side by side with some space between them.

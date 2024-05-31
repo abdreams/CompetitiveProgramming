@@ -1,36 +1,8 @@
-Sure, we'll refactor the components to meet your requirements. 
+Sure! We will adjust the layout in `Portfolio.jsx` to place the `PortfolioTable` on the left and the `PortfolioDiversity` on the right. 
 
-Here's the updated structure:
+### Step 1: Adjust the Layout in `Portfolio.jsx`
 
-1. **`App.js`** - Handles routing.
-2. **`Portfolio.jsx`** - Manages the main state and renders the `PortfolioTable` and `PortfolioDiversity` components.
-3. **`PortfolioDiversity.jsx`** - Manages the view switching between `AllocationView`, `BondEquity`, and `AssetClass`.
-
-### Step 1: Update the Project Structure
-
-1. Create `PortfolioDiversity.jsx` to manage views.
-2. Ensure `Portfolio.jsx` calls `PortfolioTable` and `PortfolioDiversity`.
-
-### Step 2: Implement the Components
-
-#### `App.js`
-```jsx
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Portfolio from './pages/Portfolio';
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Portfolio />} />
-      </Routes>
-    </Router>
-  );
-}
-
-export default App;
-```
+Here's the updated `Portfolio.jsx`:
 
 #### `pages/Portfolio.jsx`
 ```jsx
@@ -93,10 +65,14 @@ function Portfolio() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center">
-      <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-4xl">
-        <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
-        <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
+    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
+      <div className="flex w-full max-w-6xl bg-white shadow-md rounded-lg">
+        <div className="w-1/2 p-4">
+          <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
+        </div>
+        <div className="w-1/2 p-4">
+          <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
+        </div>
       </div>
     </div>
   );
@@ -105,159 +81,20 @@ function Portfolio() {
 export default Portfolio;
 ```
 
-#### `components/PortfolioDiversity.jsx`
-```jsx
-import React, { useState } from 'react';
-import AllocationView from './AllocationView';
-import BondEquity from './BondEquity';
-import AssetClass from './AssetClass';
+### Explanation
+- **`min-h-screen`**: Ensures the component takes at least the full height of the viewport.
+- **`flex justify-center items-center p-4`**: Centers the content and adds some padding.
+- **`flex w-full max-w-6xl bg-white shadow-md rounded-lg`**: Defines the main container with a max width and styling.
+- **`w-1/2 p-4`**: Splits the container into two equal parts for the table and the diversity components.
 
-function PortfolioDiversity({ portfolio }) {
-  const [view, setView] = useState('AllocationView');
+With this layout, the `PortfolioTable` will be on the left and the `PortfolioDiversity` will be on the right. 
 
-  const renderView = () => {
-    switch (view) {
-      case 'AllocationView':
-        return <AllocationView data={portfolio.allocation} />;
-      case 'BondEquity':
-        return <BondEquity data={portfolio.bondEquity} />;
-      case 'AssetClass':
-        return <AssetClass data={portfolio.assetClass} />;
-      default:
-        return <AllocationView data={portfolio.allocation} />;
-    }
-  };
+### Step 2: Running the Project
 
-  return (
-    <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
-      <div className="flex justify-around mb-4">
-        <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
-        <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
-        <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
-      </div>
-      {renderView()}
-    </div>
-  );
-}
+To see the changes, make sure to run your project using:
 
-export default PortfolioDiversity;
+```bash
+npm start
 ```
 
-#### `components/PortfolioTable.js`
-```jsx
-import React from 'react';
-
-function PortfolioTable({ portfolios, onSelectPortfolio }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Name</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Profit/Loss</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Invested</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Worth</th>
-          </tr>
-        </thead>
-        <tbody>
-          {portfolios.map((portfolio, index) => (
-            <tr key={index} onClick={() => onSelectPortfolio(index)} className="cursor-pointer hover:bg-gray-100">
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.profitLoss}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-export default PortfolioTable;
-```
-
-#### `components/AllocationView.js`
-```jsx
-import React from 'react';
-import { Doughnut } from 'react-chartjs-2';
-import 'chart.js/auto';
-
-function AllocationView({ data }) {
-  const chartData = {
-    labels: ['Big Tech', 'Stocks', 'Energy', 'Ecommerce', 'Funds'],
-    datasets: [
-      {
-        data: [data.bigTech, data.stocks, data.energy, data.ecommerce, data.funds],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF']
-      }
-    ]
-  };
-
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-2">Portfolio Diversity</h2>
-      <Doughnut data={chartData} />
-      <p className="mt-4 text-center">
-        <span className="font-bold">TSLA</span> accounts for <span className="font-bold">{data.tsla}%</span> of your portfolio.
-      </p>
-      <a href="#" className="block mt-2 text-blue-500 underline text-center">You can read our guide on diversification</a>
-    </div>
-  );
-}
-
-export default AllocationView;
-```
-
-#### `components/BondEquity.js`
-```jsx
-import React from 'react';
-import { Doughnut } from 'react-chartjs-2';
-import 'chart.js/auto';
-
-function BondEquity({ data }) {
-  const chartData = {
-    labels: ['Bonds', 'Equities'],
-    datasets: [
-      {
-        data: [data.bonds, data.equities],
-        backgroundColor: ['#FF6384', '#36A2EB'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB']
-      }
-    ]
-  };
-
-  return (
-    <div>
-      <h2 className="text-xl font-semibold mb-2">Bond Equity</h2>
-      <Doughnut data={chartData} />
-      <p className="mt-4 text-center">Bond Equity distribution in your portfolio.</p>
-    </div>
-  );
-}
-
-export default BondEquity;
-```
-
-#### `components/AssetClass.js`
-```jsx
-import React from 'react';
-import { Doughnut } from 'react-chartjs-2';
-import 'chart.js/auto';
-
-function AssetClass({ data }) {
-  const chartData = {
-    labels: ['Real Estate', 'Commodities', 'Crypto', 'Others'],
-    datasets: [
-      {
-        data: [data.realEstate, data.commodities, data.crypto, data.others],
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
-      }
-    ]
-  };
-
-  return (
-    <div>
-      <h2 className="text-xl
+This will start your React app, and you should be able to see the table on the left side and the portfolio diversity information on the right side of the screen.

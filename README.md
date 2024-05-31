@@ -1,28 +1,40 @@
-To add a portfolio table and integrate it with the existing components such that clicking on a portfolio row displays the respective pie chart in the Portfolio Diversity section, follow these steps:
+Certainly! We'll adjust the structure so that the `Portfolio.jsx` page manages the state and renders both the Portfolio Table and the Portfolio Diversity components. The `App.js` will just include routing to the `Portfolio` page.
 
-### Step 1: Update Sample Data
+### Step 1: Update the Project Structure
 
-Include multiple portfolios in the sample data, each with its own allocation, bond equity, and asset class data.
+1. **Move the logic from `App.js` to `Portfolio.jsx`.**
+2. **Update `App.js` to route to the `Portfolio` page.**
 
-### Step 2: Create the Portfolio Table Component
-
-Create a new component for the portfolio table, which allows selecting a portfolio and displays its data accordingly.
-
-### Step 3: Update Components to Handle Portfolio Selection
-
-Ensure the main component (`App.js`) manages the state for the selected portfolio and passes this state to the relevant components.
-
-### Code Implementation
+### Step 2: Update Components
 
 #### `App.js`
 ```jsx
-import React, { useState } from 'react';
-import AllocationView from './components/AllocationView';
-import BondEquity from './components/BondEquity';
-import AssetClass from './components/AssetClass';
-import PortfolioTable from './components/PortfolioTable';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Portfolio from './pages/Portfolio';
 
 function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Portfolio />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+#### `pages/Portfolio.jsx`
+```jsx
+import React, { useState } from 'react';
+import AllocationView from '../components/AllocationView';
+import BondEquity from '../components/BondEquity';
+import AssetClass from '../components/AssetClass';
+import PortfolioTable from '../components/PortfolioTable';
+
+function Portfolio() {
   const [view, setView] = useState('AllocationView');
   const [selectedPortfolio, setSelectedPortfolio] = useState(0);
 
@@ -107,7 +119,7 @@ function App() {
   );
 }
 
-export default App;
+export default Portfolio;
 ```
 
 #### `components/PortfolioTable.js`
@@ -239,10 +251,10 @@ export default AssetClass;
 
 ### Running the Project
 
-After setting everything up, run your project using:
+After setting everything up, you can run your project using:
 
 ```bash
 npm start
 ```
 
-This will give you a working implementation with a portfolio table that allows selecting different portfolios. Upon selection, the pie chart in the Portfolio Diversity section updates to display the respective portfolio's data using React, Tailwind CSS, and Chart.js.
+This will give you a working implementation with a portfolio

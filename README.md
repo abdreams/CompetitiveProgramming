@@ -1,10 +1,18 @@
-Sure! We'll create sample data for the Bond Equity and Asset Class views and integrate them similarly to how we did for the Allocation View. We'll also ensure that the navigation among these views works seamlessly.
+To add a portfolio table and integrate it with the existing components such that clicking on a portfolio row displays the respective pie chart in the Portfolio Diversity section, follow these steps:
 
 ### Step 1: Update Sample Data
 
-Update the sample data to include information for Bond Equity and Asset Class.
+Include multiple portfolios in the sample data, each with its own allocation, bond equity, and asset class data.
 
-### Step 2: Create Chart Data and Components
+### Step 2: Create the Portfolio Table Component
+
+Create a new component for the portfolio table, which allows selecting a portfolio and displays its data accordingly.
+
+### Step 3: Update Components to Handle Portfolio Selection
+
+Ensure the main component (`App.js`) manages the state for the selected portfolio and passes this state to the relevant components.
+
+### Code Implementation
 
 #### `App.js`
 ```jsx
@@ -12,58 +20,128 @@ import React, { useState } from 'react';
 import AllocationView from './components/AllocationView';
 import BondEquity from './components/BondEquity';
 import AssetClass from './components/AssetClass';
+import PortfolioTable from './components/PortfolioTable';
 
 function App() {
   const [view, setView] = useState('AllocationView');
-  const sampleData = {
-    allocation: {
-      bigTech: 60,
-      stocks: 12,
-      energy: 11,
-      ecommerce: 12,
-      funds: 5,
-      tsla: 40
+  const [selectedPortfolio, setSelectedPortfolio] = useState(0);
+
+  const sampleData = [
+    {
+      name: 'Portfolio 1',
+      profitLoss: '+5%',
+      invested: '$100,000',
+      worth: '$105,000',
+      allocation: {
+        bigTech: 60,
+        stocks: 12,
+        energy: 11,
+        ecommerce: 12,
+        funds: 5,
+        tsla: 40
+      },
+      bondEquity: {
+        bonds: 50,
+        equities: 50
+      },
+      assetClass: {
+        realEstate: 25,
+        commodities: 25,
+        crypto: 25,
+        others: 25
+      }
     },
-    bondEquity: {
-      bonds: 50,
-      equities: 50
-    },
-    assetClass: {
-      realEstate: 25,
-      commodities: 25,
-      crypto: 25,
-      others: 25
+    {
+      name: 'Portfolio 2',
+      profitLoss: '-2%',
+      invested: '$200,000',
+      worth: '$196,000',
+      allocation: {
+        bigTech: 50,
+        stocks: 20,
+        energy: 10,
+        ecommerce: 15,
+        funds: 5,
+        tsla: 30
+      },
+      bondEquity: {
+        bonds: 40,
+        equities: 60
+      },
+      assetClass: {
+        realEstate: 20,
+        commodities: 30,
+        crypto: 30,
+        others: 20
+      }
     }
-  };
+  ];
 
   const renderView = () => {
     switch (view) {
       case 'AllocationView':
-        return <AllocationView data={sampleData.allocation} />;
+        return <AllocationView data={sampleData[selectedPortfolio].allocation} />;
       case 'BondEquity':
-        return <BondEquity data={sampleData.bondEquity} />;
+        return <BondEquity data={sampleData[selectedPortfolio].bondEquity} />;
       case 'AssetClass':
-        return <AssetClass data={sampleData.assetClass} />;
+        return <AssetClass data={sampleData[selectedPortfolio].assetClass} />;
       default:
-        return <AllocationView data={sampleData.allocation} />;
+        return <AllocationView data={sampleData[selectedPortfolio].allocation} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center">
-      <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
-        <div className="flex justify-around mb-4">
-          <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
-          <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
-          <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
+      <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-4xl">
+        <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
+        <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
+          <div className="flex justify-around mb-4">
+            <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
+            <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
+            <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
+          </div>
+          {renderView()}
         </div>
-        {renderView()}
       </div>
     </div>
   );
 }
 
 export default App;
+```
+
+#### `components/PortfolioTable.js`
+```jsx
+import React from 'react';
+
+function PortfolioTable({ portfolios, onSelectPortfolio }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Name</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Profit/Loss</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Invested</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Worth</th>
+          </tr>
+        </thead>
+        <tbody>
+          {portfolios.map((portfolio, index) => (
+            <tr key={index} onClick={() => onSelectPortfolio(index)} className="cursor-pointer hover:bg-gray-100">
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.profitLoss}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default PortfolioTable;
 ```
 
 #### `components/AllocationView.js`
@@ -159,10 +237,6 @@ function AssetClass({ data }) {
 export default AssetClass;
 ```
 
-### Step 3: Tailwind CSS Configuration
-
-Ensure your Tailwind CSS is properly configured by following the setup guide and adding the required configurations in your `tailwind.config.js` file.
-
 ### Running the Project
 
 After setting everything up, run your project using:
@@ -171,4 +245,4 @@ After setting everything up, run your project using:
 npm start
 ```
 
-This will give you a working implementation with separate components for Allocation View, Bond Equity, and Asset Class, each displaying its respective data using React, Tailwind CSS, and Chart.js.
+This will give you a working implementation with a portfolio table that allows selecting different portfolios. Upon selection, the pie chart in the Portfolio Diversity section updates to display the respective portfolio's data using React, Tailwind CSS, and Chart.js.

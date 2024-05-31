@@ -1,165 +1,189 @@
-To align the `PortfolioTable` and `PortfolioDiversity` components side by side, we need to update the CSS to use a flexbox layout with `flex-row` instead of `flex-col`.
+I apologize for that oversight. Here is the updated code with the `handleSubmit` function called on the button click and the `useHistory` import and usage removed:
 
-Here's the corrected `Portfolio.jsx` to ensure the table and the portfolio diversity graph are displayed side by side:
-
-### Updated `Portfolio.jsx`
-
-```jsx
+```javascript
 import React, { useState } from 'react';
-import PortfolioTable from '../components/PortfolioTable';
-import PortfolioDiversity from '../components/PortfolioDiversity';
 
-function Portfolio() {
-  const [selectedPortfolio, setSelectedPortfolio] = useState(0);
+export default function CreatePortfolio() {
+    const [formData, setFormData] = useState({
+        portfolioName: '',
+        description: '',
+        capital: '',
+        timeHorizon: '',
+        riskAppetite: 50,
+    });
 
-  const sampleData = [
-    {
-      name: 'Portfolio 1',
-      profitLoss: '+5%',
-      invested: '$100,000',
-      worth: '$105,000',
-      allocation: {
-        bigTech: 60,
-        stocks: 12,
-        energy: 11,
-        ecommerce: 12,
-        funds: 5,
-        tsla: 40
-      },
-      bondEquity: {
-        bonds: 50,
-        equities: 50
-      },
-      assetClass: {
-        realEstate: 25,
-        commodities: 25,
-        crypto: 25,
-        others: 25
-      }
-    },
-    {
-      name: 'Portfolio 2',
-      profitLoss: '-2%',
-      invested: '$200,000',
-      worth: '$196,000',
-      allocation: {
-        bigTech: 50,
-        stocks: 20,
-        energy: 10,
-        ecommerce: 15,
-        funds: 5,
-        tsla: 30
-      },
-      bondEquity: {
-        bonds: 40,
-        equities: 60
-      },
-      assetClass: {
-        realEstate: 20,
-        commodities: 30,
-        crypto: 30,
-        others: 20
-      }
-    }
-  ];
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
-      <div className="flex w-full max-w-6xl space-x-4">
-        <div className="w-1/2">
-          <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
+    const handleSliderChange = (e) => {
+        setFormData(prevState => ({
+            ...prevState,
+            riskAppetite: e.target.value
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const url = 'https://jsonplaceholder.typicode.com/posts'; // Dummy backend URL for demonstration
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            const result = await response.json();
+            console.log('Success:', result);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <form onSubmit={handleSubmit} className='w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100'>
+                <h1 className='text-5xl font-semibold'>Create Portfolio</h1>
+                <p className='font-medium text-lg text-gray-500 mt-4'>Please fill in the details to create your portfolio.</p>
+                <div className='mt-8'>
+                    <div className='flex flex-col'>
+                        <label className='text-lg font-medium'>Name of Portfolio</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter the portfolio name"
+                            name="portfolioName"
+                            value={formData.portfolioName}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className='flex flex-col mt-4'>
+                        <label className='text-lg font-medium'>Description of Portfolio</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter the portfolio description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className='flex flex-col mt-4'>
+                        <label className='text-lg font-medium'>Capital to be Invested (in USD)</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter the capital amount"
+                            name="capital"
+                            type="number"
+                            value={formData.capital}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className='flex flex-col mt-4'>
+                        <label className='text-lg font-medium'>Time Horizon (Duration in Days)</label>
+                        <input 
+                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
+                            placeholder="Enter the duration in days"
+                            name="timeHorizon"
+                            type="number"
+                            value={formData.timeHorizon}
+                            onChange={handleChange}
+                        />
+                    </div>
+                    <div className='flex flex-col mt-4'>
+                        <label className='text-lg font-medium'>Risk Appetite (%)</label>
+                        <input 
+                            className='w-full'
+                            type="range"
+                            name="riskAppetite"
+                            min="0"
+                            max="100"
+                            value={formData.riskAppetite}
+                            onChange={handleSliderChange}
+                        />
+                        <span className="text-center mt-2">{formData.riskAppetite}%</span>
+                    </div>
+                    <div className='mt-8 flex flex-col gap-y-4'>
+                        <button 
+                            type="submit"
+                            onClick={handleSubmit}
+                            className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'
+                        >
+                            Create Portfolio
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-        <div className="w-1/2">
-          <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
-
-export default Portfolio;
 ```
 
-### Explanation
+Now, the `handleSubmit` function is correctly called when the "Create Portfolio" button is clicked. The `useHistory` import and usage have been removed. The form handles input changes, including the slider for risk appetite, and submits the data to a dummy backend.
 
-- **`flex justify-center items-center p-4`**: Centers the content and adds some padding.
-- **`flex w-full max-w-6xl space-x-4`**: Defines the main container with a max width and ensures space between the child elements using `space-x-4`.
-- **`w-1/2`**: Splits the container into two equal parts for the table and the diversity components.
+Sure, here's how you can add a button in the `PortfolioTable` component to navigate to the `CreatePortfolio` page.
 
-### Components
+1. **Add the `PortfolioTable` Component with a "Create Portfolio" Button:**
+   Ensure that you have a router set up for navigation.
 
-Ensure your components `PortfolioTable` and `PortfolioDiversity` have appropriate styles. The previous implementations should work without any changes, but ensure they fit within their respective containers.
+2. **Update `PortfolioTable` Component:**
 
-#### `components/PortfolioTable.js`
-```jsx
+```javascript
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 
-function PortfolioTable({ portfolios, onSelectPortfolio }) {
-  return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Name</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Profit/Loss</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Invested</th>
-            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Worth</th>
-          </tr>
-        </thead>
-        <tbody>
-          {portfolios.map((portfolio, index) => (
-            <tr key={index} onClick={() => onSelectPortfolio(index)} className="cursor-pointer hover:bg-gray-100">
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.profitLoss}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
-              <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+export default function PortfolioTable() {
+    const history = useHistory();
+
+    return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+            <div className="w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100">
+                <h1 className="text-5xl font-semibold">Portfolio Table</h1>
+                <p className="font-medium text-lg text-gray-500 mt-4">List of your portfolios.</p>
+                
+                {/* Portfolio Table Content Here */}
+                
+                <div className="mt-8 flex justify-center">
+                    <button 
+                        className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'
+                        onClick={() => history.push('/create-portfolio')}
+                    >
+                        Create Portfolio
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
-
-export default PortfolioTable;
 ```
 
-#### `components/PortfolioDiversity.jsx`
-```jsx
-import React, { useState } from 'react';
-import AllocationView from './AllocationView';
-import BondEquity from './BondEquity';
-import AssetClass from './AssetClass';
+3. **Ensure `CreatePortfolio` Route is Defined:**
 
-function PortfolioDiversity({ portfolio }) {
-  const [view, setView] = useState('AllocationView');
+In your main router configuration (e.g., `App.js` or `Router.js`), define the route for the `CreatePortfolio` page:
 
-  const renderView = () => {
-    switch (view) {
-      case 'AllocationView':
-        return <AllocationView data={portfolio.allocation} />;
-      case 'BondEquity':
-        return <BondEquity data={portfolio.bondEquity} />;
-      case 'AssetClass':
-        return <AssetClass data={portfolio.assetClass} />;
-      default:
-        return <AllocationView data={portfolio.allocation} />;
-    }
-  };
+```javascript
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import PortfolioTable from './PortfolioTable';
+import CreatePortfolio from './CreatePortfolio';
+import SignUp from './SignUp'; // Assuming you have other routes like SignUp
 
-  return (
-    <div className="bg-white shadow-md rounded-lg p-4">
-      <div className="flex justify-around mb-4">
-        <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
-        <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
-        <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
-      </div>
-      {renderView()}
-    </div>
-  );
+export default function App() {
+    return (
+        <Router>
+            <Switch>
+                <Route path="/" exact component={PortfolioTable} />
+                <Route path="/create-portfolio" component={CreatePortfolio} />
+                <Route path="/signup" component={SignUp} />  {/* Example of other route */}
+                {/* Add other routes here */}
+            </Switch>
+        </Router>
+    );
 }
-
-export default PortfolioDiversity;
 ```
 
-With these changes, the `PortfolioTable` and `PortfolioDiversity` components should be displayed side by side with some space between them.
+With these changes, the `PortfolioTable` component now includes a "Create Portfolio" button that navigates to the `CreatePortfolio` form. The router configuration ensures that the navigation works as expected.

@@ -1,11 +1,17 @@
-Certainly! We'll adjust the structure so that the `Portfolio.jsx` page manages the state and renders both the Portfolio Table and the Portfolio Diversity components. The `App.js` will just include routing to the `Portfolio` page.
+Sure, we'll refactor the components to meet your requirements. 
+
+Here's the updated structure:
+
+1. **`App.js`** - Handles routing.
+2. **`Portfolio.jsx`** - Manages the main state and renders the `PortfolioTable` and `PortfolioDiversity` components.
+3. **`PortfolioDiversity.jsx`** - Manages the view switching between `AllocationView`, `BondEquity`, and `AssetClass`.
 
 ### Step 1: Update the Project Structure
 
-1. **Move the logic from `App.js` to `Portfolio.jsx`.**
-2. **Update `App.js` to route to the `Portfolio` page.**
+1. Create `PortfolioDiversity.jsx` to manage views.
+2. Ensure `Portfolio.jsx` calls `PortfolioTable` and `PortfolioDiversity`.
 
-### Step 2: Update Components
+### Step 2: Implement the Components
 
 #### `App.js`
 ```jsx
@@ -29,13 +35,10 @@ export default App;
 #### `pages/Portfolio.jsx`
 ```jsx
 import React, { useState } from 'react';
-import AllocationView from '../components/AllocationView';
-import BondEquity from '../components/BondEquity';
-import AssetClass from '../components/AssetClass';
 import PortfolioTable from '../components/PortfolioTable';
+import PortfolioDiversity from '../components/PortfolioDiversity';
 
 function Portfolio() {
-  const [view, setView] = useState('AllocationView');
   const [selectedPortfolio, setSelectedPortfolio] = useState(0);
 
   const sampleData = [
@@ -89,37 +92,55 @@ function Portfolio() {
     }
   ];
 
-  const renderView = () => {
-    switch (view) {
-      case 'AllocationView':
-        return <AllocationView data={sampleData[selectedPortfolio].allocation} />;
-      case 'BondEquity':
-        return <BondEquity data={sampleData[selectedPortfolio].bondEquity} />;
-      case 'AssetClass':
-        return <AssetClass data={sampleData[selectedPortfolio].assetClass} />;
-      default:
-        return <AllocationView data={sampleData[selectedPortfolio].allocation} />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center">
       <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-4xl">
         <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
-        <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
-          <div className="flex justify-around mb-4">
-            <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
-            <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
-            <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
-          </div>
-          {renderView()}
-        </div>
+        <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
       </div>
     </div>
   );
 }
 
 export default Portfolio;
+```
+
+#### `components/PortfolioDiversity.jsx`
+```jsx
+import React, { useState } from 'react';
+import AllocationView from './AllocationView';
+import BondEquity from './BondEquity';
+import AssetClass from './AssetClass';
+
+function PortfolioDiversity({ portfolio }) {
+  const [view, setView] = useState('AllocationView');
+
+  const renderView = () => {
+    switch (view) {
+      case 'AllocationView':
+        return <AllocationView data={portfolio.allocation} />;
+      case 'BondEquity':
+        return <BondEquity data={portfolio.bondEquity} />;
+      case 'AssetClass':
+        return <AssetClass data={portfolio.assetClass} />;
+      default:
+        return <AllocationView data={portfolio.allocation} />;
+    }
+  };
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-4 mt-4 w-full max-w-md">
+      <div className="flex justify-around mb-4">
+        <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
+        <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
+        <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
+      </div>
+      {renderView()}
+    </div>
+  );
+}
+
+export default PortfolioDiversity;
 ```
 
 #### `components/PortfolioTable.js`
@@ -239,22 +260,4 @@ function AssetClass({ data }) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-2">Asset Class</h2>
-      <Doughnut data={chartData} />
-      <p className="mt-4 text-center">Asset Class distribution in your portfolio.</p>
-    </div>
-  );
-}
-
-export default AssetClass;
-```
-
-### Running the Project
-
-After setting everything up, you can run your project using:
-
-```bash
-npm start
-```
-
-This will give you a working implementation with a portfolio
+      <h2 className="text-xl

@@ -1,4 +1,4 @@
-Sure! We will adjust the layout in `Portfolio.jsx` to place the `PortfolioTable` on the left and the `PortfolioDiversity` on the right. 
+Got it! We'll adjust the layout to place the table and the graph in separate containers with some space between them.
 
 ### Step 1: Adjust the Layout in `Portfolio.jsx`
 
@@ -65,14 +65,12 @@ function Portfolio() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-4">
-      <div className="flex w-full max-w-6xl bg-white shadow-md rounded-lg">
-        <div className="w-1/2 p-4">
-          <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
-        </div>
-        <div className="w-1/2 p-4">
-          <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
-        </div>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 space-y-4">
+      <div className="w-full max-w-4xl">
+        <PortfolioTable portfolios={sampleData} onSelectPortfolio={setSelectedPortfolio} />
+      </div>
+      <div className="w-full max-w-md">
+        <PortfolioDiversity portfolio={sampleData[selectedPortfolio]} />
       </div>
     </div>
   );
@@ -83,18 +81,85 @@ export default Portfolio;
 
 ### Explanation
 - **`min-h-screen`**: Ensures the component takes at least the full height of the viewport.
-- **`flex justify-center items-center p-4`**: Centers the content and adds some padding.
-- **`flex w-full max-w-6xl bg-white shadow-md rounded-lg`**: Defines the main container with a max width and styling.
-- **`w-1/2 p-4`**: Splits the container into two equal parts for the table and the diversity components.
+- **`flex flex-col items-center p-4 space-y-4`**: Centers the content, aligns items in a column, and adds some padding and vertical space between the components.
+- **`w-full max-w-4xl`** and **`w-full max-w-md`**: Defines the width constraints for the table and the diversity components separately.
 
-With this layout, the `PortfolioTable` will be on the left and the `PortfolioDiversity` will be on the right. 
+With this layout, the `PortfolioTable` and `PortfolioDiversity` components will be displayed separately with some space between them.
 
-### Step 2: Running the Project
+### Step 2: Update the Components to Ensure Proper Layout
 
-To see the changes, make sure to run your project using:
+Ensure your components `PortfolioTable`, `PortfolioDiversity`, `AllocationView`, `BondEquity`, and `AssetClass` are properly styled for this layout.
 
-```bash
-npm start
+#### `components/PortfolioTable.js`
+```jsx
+import React from 'react';
+
+function PortfolioTable({ portfolios, onSelectPortfolio }) {
+  return (
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Name</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Profit/Loss</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Invested</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Worth</th>
+          </tr>
+        </thead>
+        <tbody>
+          {portfolios.map((portfolio, index) => (
+            <tr key={index} onClick={() => onSelectPortfolio(index)} className="cursor-pointer hover:bg-gray-100">
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.profitLoss}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
+              <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default PortfolioTable;
 ```
 
-This will start your React app, and you should be able to see the table on the left side and the portfolio diversity information on the right side of the screen.
+#### `components/PortfolioDiversity.jsx`
+```jsx
+import React, { useState } from 'react';
+import AllocationView from './AllocationView';
+import BondEquity from './BondEquity';
+import AssetClass from './AssetClass';
+
+function PortfolioDiversity({ portfolio }) {
+  const [view, setView] = useState('AllocationView');
+
+  const renderView = () => {
+    switch (view) {
+      case 'AllocationView':
+        return <AllocationView data={portfolio.allocation} />;
+      case 'BondEquity':
+        return <BondEquity data={portfolio.bondEquity} />;
+      case 'AssetClass':
+        return <AssetClass data={portfolio.assetClass} />;
+      default:
+        return <AllocationView data={portfolio.allocation} />;
+    }
+  };
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-4">
+      <div className="flex justify-around mb-4">
+        <button onClick={() => setView('AllocationView')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Allocation View</button>
+        <button onClick={() => setView('BondEquity')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Bond Equity</button>
+        <button onClick={() => setView('AssetClass')} className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600">Asset Class</button>
+      </div>
+      {renderView()}
+    </div>
+  );
+}
+
+export default PortfolioDiversity;
+```
+
+This layout will place the table and the portfolio diversity graph in separate containers, providing some space between them and making it visually cleaner.

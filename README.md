@@ -1,189 +1,140 @@
-I apologize for that oversight. Here is the updated code with the `handleSubmit` function called on the button click and the `useHistory` import and usage removed:
+To implement the chart display component, we can use a chart library like `Chart.js` along with `react-chartjs-2` for rendering the charts in a React component. We will create a new component called `PerformanceChart` which will include a line chart representing the portfolio's past values and buttons to switch between a line chart and a bar chart.
+
+Let's start by installing the necessary packages:
+
+```sh
+npm install chart.js react-chartjs-2
+```
+
+### PerformanceChart Component
+
+Here is the `PerformanceChart` component that displays the current performance and allows switching between a line chart and a bar chart:
 
 ```javascript
 import React, { useState } from 'react';
+import { Line, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, LineElement, BarElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend } from 'chart.js';
 
-export default function CreatePortfolio() {
-    const [formData, setFormData] = useState({
-        portfolioName: '',
-        description: '',
-        capital: '',
-        timeHorizon: '',
-        riskAppetite: 50,
-    });
+ChartJS.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+const PerformanceChart = ({ data }) => {
+    const [chartType, setChartType] = useState('line');
+
+    const chartData = {
+        labels: data.map(entry => entry.date),
+        datasets: [{
+            label: 'Portfolio Value',
+            data: data.map(entry => entry.value),
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            fill: true,
+        }],
     };
 
-    const handleSliderChange = (e) => {
-        setFormData(prevState => ({
-            ...prevState,
-            riskAppetite: e.target.value
-        }));
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const url = 'https://jsonplaceholder.typicode.com/posts'; // Dummy backend URL for demonstration
-
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
+    const options = {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'month'
                 },
-                body: JSON.stringify(formData)
-            });
-            const result = await response.json();
-            console.log('Success:', result);
-        } catch (error) {
-            console.error('Error:', error);
+                title: {
+                    display: true,
+                    text: 'Date'
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Value (INR)'
+                }
+            }
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <form onSubmit={handleSubmit} className='w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100'>
-                <h1 className='text-5xl font-semibold'>Create Portfolio</h1>
-                <p className='font-medium text-lg text-gray-500 mt-4'>Please fill in the details to create your portfolio.</p>
-                <div className='mt-8'>
-                    <div className='flex flex-col'>
-                        <label className='text-lg font-medium'>Name of Portfolio</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter the portfolio name"
-                            name="portfolioName"
-                            value={formData.portfolioName}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className='flex flex-col mt-4'>
-                        <label className='text-lg font-medium'>Description of Portfolio</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter the portfolio description"
-                            name="description"
-                            value={formData.description}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className='flex flex-col mt-4'>
-                        <label className='text-lg font-medium'>Capital to be Invested (in USD)</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter the capital amount"
-                            name="capital"
-                            type="number"
-                            value={formData.capital}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className='flex flex-col mt-4'>
-                        <label className='text-lg font-medium'>Time Horizon (Duration in Days)</label>
-                        <input 
-                            className='w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent'
-                            placeholder="Enter the duration in days"
-                            name="timeHorizon"
-                            type="number"
-                            value={formData.timeHorizon}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className='flex flex-col mt-4'>
-                        <label className='text-lg font-medium'>Risk Appetite (%)</label>
-                        <input 
-                            className='w-full'
-                            type="range"
-                            name="riskAppetite"
-                            min="0"
-                            max="100"
-                            value={formData.riskAppetite}
-                            onChange={handleSliderChange}
-                        />
-                        <span className="text-center mt-2">{formData.riskAppetite}%</span>
-                    </div>
-                    <div className='mt-8 flex flex-col gap-y-4'>
-                        <button 
-                            type="submit"
-                            onClick={handleSubmit}
-                            className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'
-                        >
-                            Create Portfolio
-                        </button>
-                    </div>
-                </div>
-            </form>
+        <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold mb-4">Overall Performance</h2>
+            <div className="mb-4">
+                <p className="text-xl">₹252,501.00</p>
+                <p className="text-green-500">+230.82% from July 2021</p>
+            </div>
+            <div className="flex justify-center mb-4">
+                <button onClick={() => setChartType('line')} className="bg-blue-500 text-white px-4 py-2 rounded-l-lg">Line Chart</button>
+                <button onClick={() => setChartType('bar')} className="bg-blue-500 text-white px-4 py-2 rounded-r-lg">Bar Chart</button>
+            </div>
+            {chartType === 'line' ? (
+                <Line data={chartData} options={options} />
+            ) : (
+                <Bar data={chartData} options={options} />
+            )}
         </div>
     );
-}
+};
+
+export default PerformanceChart;
 ```
 
-Now, the `handleSubmit` function is correctly called when the "Create Portfolio" button is clicked. The `useHistory` import and usage have been removed. The form handles input changes, including the slider for risk appetite, and submits the data to a dummy backend.
+### Integrate PerformanceChart into Portfolio Component
 
-Sure, here's how you can add a button in the `PortfolioTable` component to navigate to the `CreatePortfolio` page.
+Now we need to integrate this `PerformanceChart` component into our `Portfolio` page. We will also include the `PortfolioTable` component and a placeholder for portfolio diversity.
 
-1. **Add the `PortfolioTable` Component with a "Create Portfolio" Button:**
-   Ensure that you have a router set up for navigation.
-
-2. **Update `PortfolioTable` Component:**
+Here's an updated `Portfolio` component with these changes:
 
 ```javascript
 import React from 'react';
-import { useHistory } from 'react-router-dom';
+import PerformanceChart from './PerformanceChart';
+import PortfolioTable from './PortfolioTable';
 
-export default function PortfolioTable() {
-    const history = useHistory();
+const portfolioData = [
+    { date: '2021-07-01', value: 50000 },
+    { date: '2021-12-01', value: 75000 },
+    { date: '2022-06-01', value: 100000 },
+    { date: '2022-12-01', value: 125000 },
+    { date: '2023-06-01', value: 150000 },
+    { date: '2023-12-01', value: 252501 }
+];
 
+export default function Portfolio() {
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-            <div className="w-11/12 max-w-[700px] px-10 py-20 rounded-3xl bg-white border-2 border-gray-100">
-                <h1 className="text-5xl font-semibold">Portfolio Table</h1>
-                <p className="font-medium text-lg text-gray-500 mt-4">List of your portfolios.</p>
-                
-                {/* Portfolio Table Content Here */}
-                
-                <div className="mt-8 flex justify-center">
-                    <button 
-                        className='active:scale-[.98] active:duration-75 transition-all hover:scale-[1.01] ease-in-out transform py-4 bg-violet-500 rounded-xl text-white font-bold text-lg'
-                        onClick={() => history.push('/create-portfolio')}
-                    >
-                        Create Portfolio
-                    </button>
+        <div className="min-h-screen flex flex-col items-center bg-gray-100 p-8">
+            <h1 className="text-5xl font-semibold mb-8">Portfolio</h1>
+            <PerformanceChart data={portfolioData} />
+            <div className="w-full max-w-4xl mt-8">
+                {/* Placeholder for Portfolio Diversity */}
+                <div className="bg-white p-4 rounded-lg shadow-md mb-8">
+                    <h2 className="text-2xl font-semibold mb-4">Portfolio Diversity</h2>
+                    {/* Portfolio Diversity Content Here */}
                 </div>
+                <PortfolioTable />
             </div>
         </div>
     );
 }
 ```
 
-3. **Ensure `CreatePortfolio` Route is Defined:**
+### Final Integration
 
-In your main router configuration (e.g., `App.js` or `Router.js`), define the route for the `CreatePortfolio` page:
+Ensure you have the routing set up correctly in your main router configuration, so you can navigate to the `Portfolio` page properly. Here is a reminder of the router setup:
 
 ```javascript
 import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import PortfolioTable from './PortfolioTable';
+import Portfolio from './Portfolio';
 import CreatePortfolio from './CreatePortfolio';
-import SignUp from './SignUp'; // Assuming you have other routes like SignUp
 
 export default function App() {
     return (
         <Router>
             <Switch>
-                <Route path="/" exact component={PortfolioTable} />
+                <Route path="/" exact component={Portfolio} />
                 <Route path="/create-portfolio" component={CreatePortfolio} />
-                <Route path="/signup" component={SignUp} />  {/* Example of other route */}
-                {/* Add other routes here */}
             </Switch>
         </Router>
     );
 }
 ```
 
-With these changes, the `PortfolioTable` component now includes a "Create Portfolio" button that navigates to the `CreatePortfolio` form. The router configuration ensures that the navigation works as expected.
+This setup includes the `PerformanceChart` component in the `Portfolio` page and ensures it works correctly with dummy data. The buttons allow switching between the line chart and bar chart, and the `PortfolioTable` and portfolio diversity sections are also included.

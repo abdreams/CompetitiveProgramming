@@ -1,25 +1,17 @@
-To implement the chart display component, we can use a chart library like `Chart.js` along with `react-chartjs-2` for rendering the charts in a React component. We will create a new component called `PerformanceChart` which will include a line chart representing the portfolio's past values and buttons to switch between a line chart and a bar chart.
+Sure, I'll simplify the `PerformanceChart` component to display just a simple line chart using the sample data.
 
-Let's start by installing the necessary packages:
+### Simplified PerformanceChart Component
 
-```sh
-npm install chart.js react-chartjs-2
-```
-
-### PerformanceChart Component
-
-Here is the `PerformanceChart` component that displays the current performance and allows switching between a line chart and a bar chart:
+Here's a simplified version of the `PerformanceChart` component that only displays a line chart:
 
 ```javascript
-import React, { useState } from 'react';
-import { Line, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, LineElement, BarElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend } from 'chart.js';
+import React from 'react';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
 
-ChartJS.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const PerformanceChart = ({ data }) => {
-    const [chartType, setChartType] = useState('line');
-
     const chartData = {
         labels: data.map(entry => entry.date),
         datasets: [{
@@ -36,10 +28,6 @@ const PerformanceChart = ({ data }) => {
         responsive: true,
         scales: {
             x: {
-                type: 'time',
-                time: {
-                    unit: 'month'
-                },
                 title: {
                     display: true,
                     text: 'Date'
@@ -61,15 +49,7 @@ const PerformanceChart = ({ data }) => {
                 <p className="text-xl">₹252,501.00</p>
                 <p className="text-green-500">+230.82% from July 2021</p>
             </div>
-            <div className="flex justify-center mb-4">
-                <button onClick={() => setChartType('line')} className="bg-blue-500 text-white px-4 py-2 rounded-l-lg">Line Chart</button>
-                <button onClick={() => setChartType('bar')} className="bg-blue-500 text-white px-4 py-2 rounded-r-lg">Bar Chart</button>
-            </div>
-            {chartType === 'line' ? (
-                <Line data={chartData} options={options} />
-            ) : (
-                <Bar data={chartData} options={options} />
-            )}
+            <Line data={chartData} options={options} />
         </div>
     );
 };
@@ -79,9 +59,7 @@ export default PerformanceChart;
 
 ### Integrate PerformanceChart into Portfolio Component
 
-Now we need to integrate this `PerformanceChart` component into our `Portfolio` page. We will also include the `PortfolioTable` component and a placeholder for portfolio diversity.
-
-Here's an updated `Portfolio` component with these changes:
+Now we integrate this simplified `PerformanceChart` component into our `Portfolio` page:
 
 ```javascript
 import React from 'react';
@@ -115,26 +93,4 @@ export default function Portfolio() {
 }
 ```
 
-### Final Integration
-
-Ensure you have the routing set up correctly in your main router configuration, so you can navigate to the `Portfolio` page properly. Here is a reminder of the router setup:
-
-```javascript
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Portfolio from './Portfolio';
-import CreatePortfolio from './CreatePortfolio';
-
-export default function App() {
-    return (
-        <Router>
-            <Switch>
-                <Route path="/" exact component={Portfolio} />
-                <Route path="/create-portfolio" component={CreatePortfolio} />
-            </Switch>
-        </Router>
-    );
-}
-```
-
-This setup includes the `PerformanceChart` component in the `Portfolio` page and ensures it works correctly with dummy data. The buttons allow switching between the line chart and bar chart, and the `PortfolioTable` and portfolio diversity sections are also included.
+This setup should now display a simple line chart representing the portfolio's value over time using the provided sample data.

@@ -1,13 +1,8 @@
-I understand you want a four-square layout on the `PortfolioDetail` page. Here's how to implement it:
+Let's adjust the layout to avoid wrapping components in additional boxes and ensure they are positioned properly to utilize space efficiently. We will place the components directly within the grid without extra container elements, making use of Tailwind CSS to manage spacing and alignment.
 
-- Stocks table on the top left.
-- Overall performance on the bottom left.
-- Chart display (PortfolioDiversity) on the top right.
-- Another component (e.g., allocation) on the bottom right.
+### Updated `PortfolioDetail.jsx`
 
-### Step 1: Update `PortfolioDetail.jsx`
-
-Update the `PortfolioDetail` component to create the four-square layout as described.
+We'll modify the `PortfolioDetail` page to use Tailwind CSS grid and flex utilities to position the components without additional boxes.
 
 #### `pages/PortfolioDetail.jsx`
 
@@ -95,7 +90,7 @@ function PortfolioDetail() {
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white shadow-md rounded-lg p-4">
+        <div>
           <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
           <table className="min-w-full bg-white">
             <thead>
@@ -120,10 +115,10 @@ function PortfolioDetail() {
             Rebalance Portfolio
           </button>
         </div>
-        <div className="bg-white shadow-md rounded-lg p-4">
+        <div>
           <PortfolioDiversity portfolio={portfolio} />
         </div>
-        <div className="bg-white shadow-md rounded-lg p-4">
+        <div>
           <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
           <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
           <p><strong>Invested:</strong> {portfolio.invested}</p>
@@ -132,7 +127,7 @@ function PortfolioDetail() {
           <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity, null, 2)}</p>
           <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass, null, 2)}</p>
         </div>
-        <div className="bg-white shadow-md rounded-lg p-4">
+        <div>
           <ChartComponent data={portfolio.allocation} /> {/* Placeholder for the chart component */}
         </div>
       </div>
@@ -146,14 +141,12 @@ export default PortfolioDetail;
 ### Explanation
 
 - **Grid Layout**: The `PortfolioDetail` component uses a CSS grid (`grid grid-cols-2 gap-4`) to create a two-column layout with four cells.
-- **Stocks Table**: Placed in the top-left cell.
-- **PortfolioDiversity**: Placed in the top-right cell.
-- **Overall Performance**: Placed in the bottom-left cell.
-- **ChartComponent**: A placeholder for the chart display, placed in the bottom-right cell. Replace `ChartComponent` with your actual chart component if it's different.
+- **Components**: The components are placed directly in the grid cells without additional containers, ensuring they occupy the correct space.
+- **Tailwind CSS**: Tailwind classes are used for spacing and alignment.
 
 ### Portfolio Diversity Component
 
-Ensure `PortfolioDiversity` is set up to render properly as required. Below is a sample update if needed.
+Ensure `PortfolioDiversity` is set up to render properly as required.
 
 #### `components/PortfolioDiversity.js`
 
@@ -200,7 +193,7 @@ export default PortfolioDiversity;
 
 ### Chart Component (Placeholder)
 
-If you have a chart component, make sure it's correctly implemented. Below is a placeholder example.
+If you have a chart component, ensure it's implemented correctly. Below is a placeholder example.
 
 #### `components/ChartComponent.js`
 
@@ -220,4 +213,4 @@ function ChartComponent({ data }) {
 export default ChartComponent;
 ```
 
-With these changes, the `PortfolioDetail` page will now have a four-square layout as you described, with the stocks table and overall performance on the left, and the chart display and portfolio diversity on the right.
+With these changes, the `PortfolioDetail` page will have the four-square layout without unnecessary container elements, ensuring an efficient and clean layout.

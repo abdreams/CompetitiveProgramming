@@ -1,8 +1,8 @@
-Let's adjust the layout to avoid wrapping components in additional boxes and ensure they are positioned properly to utilize space efficiently. We will place the components directly within the grid without extra container elements, making use of Tailwind CSS to manage spacing and alignment.
+To achieve the layout with two divs, each containing two components stacked one below the other, we'll adjust the `PortfolioDetail` component to use a flexbox layout. The left and right containers will each contain two components arranged vertically.
 
-### Updated `PortfolioDetail.jsx`
+### Step-by-Step Implementation
 
-We'll modify the `PortfolioDetail` page to use Tailwind CSS grid and flex utilities to position the components without additional boxes.
+### Step 1: Update `PortfolioDetail.jsx`
 
 #### `pages/PortfolioDetail.jsx`
 
@@ -88,47 +88,54 @@ function PortfolioDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr>
-                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Name</th>
-                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
-              </tr>
-            </thead>
-            <tbody>
-              {portfolio.stocks.map((stock, index) => (
-                <tr key={index} className="hover:bg-gray-100">
-                  <td className="py-2 px-4 border-b border-gray-200">{stock.name}</td>
-                  <td className="py-2 px-4 border-b border-gray-200">{stock.percentage}%</td>
+    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
+      <div className="flex w-full max-w-6xl gap-4">
+        {/* Left Column */}
+        <div className="flex flex-col w-1/2 space-y-4">
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Name</th>
+                  <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <button 
-            onClick={handleRebalance} 
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Rebalance Portfolio
-          </button>
+              </thead>
+              <tbody>
+                {portfolio.stocks.map((stock, index) => (
+                  <tr key={index} className="hover:bg-gray-100">
+                    <td className="py-2 px-4 border-b border-gray-200">{stock.name}</td>
+                    <td className="py-2 px-4 border-b border-gray-200">{stock.percentage}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button 
+              onClick={handleRebalance} 
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Rebalance Portfolio
+            </button>
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
+            <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
+            <p><strong>Invested:</strong> {portfolio.invested}</p>
+            <p><strong>Portfolio Worth:</strong> {portfolio.worth}</p>
+            <p><strong>Allocation:</strong> {JSON.stringify(portfolio.allocation, null, 2)}</p>
+            <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity, null, 2)}</p>
+            <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass, null, 2)}</p>
+          </div>
         </div>
-        <div>
-          <PortfolioDiversity portfolio={portfolio} />
-        </div>
-        <div>
-          <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
-          <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
-          <p><strong>Invested:</strong> {portfolio.invested}</p>
-          <p><strong>Portfolio Worth:</strong> {portfolio.worth}</p>
-          <p><strong>Allocation:</strong> {JSON.stringify(portfolio.allocation, null, 2)}</p>
-          <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity, null, 2)}</p>
-          <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass, null, 2)}</p>
-        </div>
-        <div>
-          <ChartComponent data={portfolio.allocation} /> {/* Placeholder for the chart component */}
+
+        {/* Right Column */}
+        <div className="flex flex-col w-1/2 space-y-4">
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <PortfolioDiversity portfolio={portfolio} />
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <ChartComponent data={portfolio.allocation} /> {/* Placeholder for the chart component */}
+          </div>
         </div>
       </div>
     </div>
@@ -140,77 +147,9 @@ export default PortfolioDetail;
 
 ### Explanation
 
-- **Grid Layout**: The `PortfolioDetail` component uses a CSS grid (`grid grid-cols-2 gap-4`) to create a two-column layout with four cells.
-- **Components**: The components are placed directly in the grid cells without additional containers, ensuring they occupy the correct space.
-- **Tailwind CSS**: Tailwind classes are used for spacing and alignment.
+- **Flexbox Layout**: The main container is set to use flex (`flex flex-col items-center`) to center the content. Inside it, a flexbox layout is used to split the content into two columns.
+- **Two Columns**: Each column (`div` with `w-1/2`) contains two components stacked vertically (`flex flex-col space-y-4`).
+- **Component Placement**: The stocks table and overall performance are placed in the left column. The `PortfolioDiversity` and `ChartComponent` are placed in the right column.
+- **Spacing**: Tailwind CSS utilities (`space-y-4`) are used to add vertical spacing between components within each column.
 
-### Portfolio Diversity Component
-
-Ensure `PortfolioDiversity` is set up to render properly as required.
-
-#### `components/PortfolioDiversity.js`
-
-```jsx
-import React, { useState } from 'react';
-import AllocationView from './AllocationView';
-import AssetClass from './AssetClass';
-import BondEquity from './BondEquity';
-
-function PortfolioDiversity({ portfolio }) {
-  const [view, setView] = useState('allocation');
-
-  return (
-    <div className="bg-white shadow-md rounded-lg p-4">
-      <div className="flex justify-around mb-4">
-        <button 
-          className={`px-4 py-2 ${view === 'allocation' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
-          onClick={() => setView('allocation')}
-        >
-          Allocation View
-        </button>
-        <button 
-          className={`px-4 py-2 ${view === 'bond' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
-          onClick={() => setView('bond')}
-        >
-          Bond Equity
-        </button>
-        <button 
-          className={`px-4 py-2 ${view === 'asset' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
-          onClick={() => setView('asset')}
-        >
-          Asset Class
-        </button>
-      </div>
-      {view === 'allocation' && <AllocationView allocation={portfolio.allocation} />}
-      {view === 'bond' && <BondEquity bondEquity={portfolio.bondEquity} />}
-      {view === 'asset' && <AssetClass assetClass={portfolio.assetClass} />}
-    </div>
-  );
-}
-
-export default PortfolioDiversity;
-```
-
-### Chart Component (Placeholder)
-
-If you have a chart component, ensure it's implemented correctly. Below is a placeholder example.
-
-#### `components/ChartComponent.js`
-
-```jsx
-import React from 'react';
-
-function ChartComponent({ data }) {
-  return (
-    <div>
-      <h3 className="text-lg font-medium mb-2">Chart Display</h3>
-      {/* Implement your chart logic here, using the passed data */}
-      <div>Chart rendering logic...</div>
-    </div>
-  );
-}
-
-export default ChartComponent;
-```
-
-With these changes, the `PortfolioDetail` page will have the four-square layout without unnecessary container elements, ensuring an efficient and clean layout.
+This layout should ensure the components are displayed in the desired positions, effectively using the available space without unnecessary wrapping elements.

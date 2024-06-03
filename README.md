@@ -1,147 +1,431 @@
-Implementing an inactivity timeout in a React app to log out a user when they're inactive and issuing a new refresh token when the previous access token expires can be achieved using hooks and context for state management. Here’s a step-by-step guide to help you implement this:
+To implement the requested functionality, we'll make use of React Router for navigation between pages. We'll create a detailed view page that displays detailed information about the selected portfolio.
 
-### 1. Create a Context for Authentication
+Here's the step-by-step implementation:
 
-Create an `AuthContext` to manage authentication state and provide access to it throughout your app.
+### Step 1: Install React Router
+If you haven't already installed React Router, install it using npm:
 
-```jsx
-// AuthContext.js
-import React, { createContext, useState, useEffect } from 'react';
-
-const AuthContext = createContext();
-
-export const AuthProvider = ({ children }) => {
-    const [authToken, setAuthToken] = useState(null);
-    const [refreshToken, setRefreshToken] = useState(null);
-
-    const login = (newAuthToken, newRefreshToken) => {
-        setAuthToken(newAuthToken);
-        setRefreshToken(newRefreshToken);
-    };
-
-    const logout = () => {
-        setAuthToken(null);
-        setRefreshToken(null);
-    };
-
-    return (
-        <AuthContext.Provider value={{ authToken, refreshToken, login, logout }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
-
-export default AuthContext;
+```bash
+npm install react-router-dom
 ```
 
-### 2. Create a Hook to Manage Inactivity
+### Step 2: Set Up Routing in `App.js`
 
-Create a custom hook to detect user inactivity and log them out after a set period.
+Update `App.js` to include routing for the portfolio summary and detailed view pages.
 
-```jsx
-// useInactivityTimeout.js
-import { useEffect, useCallback } from 'react';
-import { useContext } from 'react';
-import AuthContext from './AuthContext';
-
-const useInactivityTimeout = (timeout = 300000) => { // default 5 minutes
-    const { logout } = useContext(AuthContext);
-
-    const handleActivity = useCallback(() => {
-        clearTimeout(window.inactivityTimeout);
-        window.inactivityTimeout = setTimeout(() => {
-            logout();
-        }, timeout);
-    }, [logout, timeout]);
-
-    useEffect(() => {
-        window.addEventListener('mousemove', handleActivity);
-        window.addEventListener('keydown', handleActivity);
-
-        handleActivity(); // set initial timeout
-
-        return () => {
-            clearTimeout(window.inactivityTimeout);
-            window.removeEventListener('mousemove', handleActivity);
-            window.removeEventListener('keydown', handleActivity);
-        };
-    }, [handleActivity]);
-};
-
-export default useInactivityTimeout;
-```
-
-### 3. Refresh Token Logic
-
-Add logic to refresh the token when it expires. This can be achieved using an effect that checks the token expiration and refreshes it accordingly.
+#### `App.js`
 
 ```jsx
-// AuthContext.js
-import jwt_decode from 'jwt-decode';
-
-const refreshAuthToken = async (refreshToken) => {
-    // Implement your refresh token logic here
-    // This is a placeholder function that you should replace with your actual API call
-    const response = await fetch('/api/refresh-token', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken }),
-    });
-    const data = await response.json();
-    return data.newAuthToken;
-};
-
-export const AuthProvider = ({ children }) => {
-    // existing state and functions...
-
-    useEffect(() => {
-        if (!refreshToken) return;
-
-        const interval = setInterval(async () => {
-            if (authToken) {
-                const decodedToken = jwt_decode(authToken);
-                const expirationTime = decodedToken.exp * 1000 - 60000; // refresh 1 minute before expiry
-                if (Date.now() >= expirationTime) {
-                    const newAuthToken = await refreshAuthToken(refreshToken);
-                    setAuthToken(newAuthToken);
-                }
-            }
-        }, 60000); // check every minute
-
-        return () => clearInterval(interval);
-    }, [authToken, refreshToken]);
-};
-```
-
-### 4. Use the Hook in Your App
-
-Finally, use the `useInactivityTimeout` hook in your main app component or wherever appropriate.
-
-```jsx
-// App.js
 import React from 'react';
-import { AuthProvider } from './AuthContext';
-import useInactivityTimeout from './useInactivityTimeout';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Portfolio from './pages/Portfolio';
+import PortfolioDetail from './pages/PortfolioDetail';
 
-const App = () => {
-    useInactivityTimeout();
-
-    return (
-        <AuthProvider>
-            {/* Your app components go here */}
-        </AuthProvider>
-    );
-};
+function App() {
+  return (
+    <Router>
+      <Switch>
+        <Route exact path="/" component={Portfolio} />
+        <Route path="/portfolio/:id" component={PortfolioDetail} />
+      </Switch>
+    </Router>
+  );
+}
 
 export default App;
 ```
 
-### Summary
+### Step 3: Update `PortfolioTable` to Include a Button for Detailed View
 
-1. **AuthContext**: Manages authentication state.
-2. **useInactivityTimeout**: Detects inactivity and logs the user out.
-3. **Refresh Token Logic**: Refreshes the auth token before it expires.
+Add a button in `PortfolioTable` to navigate to the detailed view page of a selected portfolio.
 
-This setup ensures that users are logged out after a period of inactivity and that their authentication token is refreshed as needed. Adjust the timeout values and API calls according to your application's requirements.
+#### `components/PortfolioTable.js`
+
+```jsx
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
+
+function PortfolioTable({ portfolios, onSelectPortfolio }) {
+  const [expandedPortfolio, setExpandedPortfolio] = useState(null);
+  const history = useHistory();
+
+  const toggleExpand = (index) => {
+    setExpandedPortfolio(expandedPortfolio === index ? null : index);
+  };
+
+  const goToDetailView = (index) => {
+    history.push(`/portfolio/${index}`);
+  };
+
+  return (
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
+      <table className="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Name</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Profit/Loss</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Invested</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Portfolio Worth</th>
+            <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {portfolios.map((portfolio, index) => (
+            <React.Fragment key={index}>
+              <tr onClick={() => { onSelectPortfolio(index); toggleExpand(index); }} className="cursor-pointer hover:bg-gray-100">
+                <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
+                <td className="py-2 px-4 border-b border-gray-200">
+                  <span className={`block ${portfolio.profitLoss.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                    {`${portfolio.profitLoss.startsWith('+') ? '▲' : '▼'} ${portfolio.profitLoss}`}
+                  </span>
+                </td>
+                <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
+                <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
+                <td className="py-2 px-4 border-b border-gray-200">
+                  <button 
+                    onClick={() => goToDetailView(index)} 
+                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                  >
+                    Detailed View
+                  </button>
+                </td>
+              </tr>
+              {expandedPortfolio === index && (
+                <tr className="bg-gray-100">
+                  <td colSpan="5" className="p-4">
+                    <div className="p-4 bg-white shadow-md rounded-lg">
+                      <h3 className="text-lg font-medium mb-2">Detailed View for {portfolio.name}</h3>
+                      <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
+                      <p><strong>Invested:</strong> {portfolio.invested}</p>
+                      <p><strong>Portfolio Worth:</strong> {portfolio.worth}</p>
+                      <p><strong>Allocation:</strong> {JSON.stringify(portfolio.allocation)}</p>
+                      <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity)}</p>
+                      <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass)}</p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default PortfolioTable;
+```
+
+### Step 4: Create the `PortfolioDetail` Page
+
+Create a new page for displaying the detailed view of a selected portfolio.
+
+#### `pages/PortfolioDetail.jsx`
+
+```jsx
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import PortfolioDiversity from '../components/PortfolioDiversity';
+
+const sampleData = [
+  {
+    name: 'Portfolio 1',
+    profitLoss: '+5%',
+    invested: '$100,000',
+    worth: '$105,000',
+    allocation: {
+      bigTech: 60,
+      stocks: 12,
+      energy: 11,
+      ecommerce: 12,
+      funds: 5,
+      tsla: 40
+    },
+    bondEquity: {
+      bonds: 50,
+      equities: 50
+    },
+    assetClass: {
+      realEstate: 25,
+      commodities: 25,
+      crypto: 25,
+      others: 25
+    },
+    stocks: [
+      { name: 'AAPL', percentage: 20 },
+      { name: 'GOOGL', percentage: 15 },
+      { name: 'TSLA', percentage: 25 },
+      { name: 'AMZN', percentage: 20 },
+      { name: 'MSFT', percentage: 20 }
+    ]
+  },
+  {
+    name: 'Portfolio 2',
+    profitLoss: '-2%',
+    invested: '$200,000',
+    worth: '$196,000',
+    allocation: {
+      bigTech: 50,
+      stocks: 20,
+      energy: 10,
+      ecommerce: 15,
+      funds: 5,
+      tsla: 30
+    },
+    bondEquity: {
+      bonds: 40,
+      equities: 60
+    },
+    assetClass: {
+      realEstate: 20,
+      commodities: 30,
+      crypto: 30,
+      others: 20
+    },
+    stocks: [
+      { name: 'NFLX', percentage: 10 },
+      { name: 'DIS', percentage: 20 },
+      { name: 'FB', percentage: 20 },
+      { name: 'NVDA', percentage: 25 },
+      { name: 'ADBE', percentage: 25 }
+    ]
+  }
+];
+
+function PortfolioDetail() {
+  const { id } = useParams();
+  const portfolio = sampleData[id];
+
+  const handleRebalance = () => {
+    // Simulate an API call to rebalance the portfolio
+    console.log(`Rebalancing portfolio ${portfolio.name}`);
+    alert('Portfolio rebalanced successfully!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="flex space-x-4">
+        <div className="w-1/3 bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Name</th>
+                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {portfolio.stocks.map((stock, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="py-2 px-4 border-b border-gray-200">{stock.name}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">{stock.percentage}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button 
+            onClick={handleRebalance} 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Rebalance Portfolio
+          </button>
+        </div>
+        <div className="w-2/3 flex flex-col space-y-4">
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <PortfolioDiversity portfolio={portfolio} />
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
+            <p><strong>Profit/Loss:</strong> {portfolio.profitLoss'''
+
+Sure, I'll complete the detailed view for the `PortfolioDetail` page, including the overall performance section.
+
+### Complete `PortfolioDetail.jsx`
+
+#### `pages/PortfolioDetail.jsx`
+
+```jsx
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import PortfolioDiversity from '../components/PortfolioDiversity';
+
+const sampleData = [
+  {
+    name: 'Portfolio 1',
+    profitLoss: '+5%',
+    invested: '$100,000',
+    worth: '$105,000',
+    allocation: {
+      bigTech: 60,
+      stocks: 12,
+      energy: 11,
+      ecommerce: 12,
+      funds: 5,
+      tsla: 40
+    },
+    bondEquity: {
+      bonds: 50,
+      equities: 50
+    },
+    assetClass: {
+      realEstate: 25,
+      commodities: 25,
+      crypto: 25,
+      others: 25
+    },
+    stocks: [
+      { name: 'AAPL', percentage: 20 },
+      { name: 'GOOGL', percentage: 15 },
+      { name: 'TSLA', percentage: 25 },
+      { name: 'AMZN', percentage: 20 },
+      { name: 'MSFT', percentage: 20 }
+    ]
+  },
+  {
+    name: 'Portfolio 2',
+    profitLoss: '-2%',
+    invested: '$200,000',
+    worth: '$196,000',
+    allocation: {
+      bigTech: 50,
+      stocks: 20,
+      energy: 10,
+      ecommerce: 15,
+      funds: 5,
+      tsla: 30
+    },
+    bondEquity: {
+      bonds: 40,
+      equities: 60
+    },
+    assetClass: {
+      realEstate: 20,
+      commodities: 30,
+      crypto: 30,
+      others: 20
+    },
+    stocks: [
+      { name: 'NFLX', percentage: 10 },
+      { name: 'DIS', percentage: 20 },
+      { name: 'FB', percentage: 20 },
+      { name: 'NVDA', percentage: 25 },
+      { name: 'ADBE', percentage: 25 }
+    ]
+  }
+];
+
+function PortfolioDetail() {
+  const { id } = useParams();
+  const portfolio = sampleData[id];
+
+  const handleRebalance = () => {
+    // Simulate an API call to rebalance the portfolio
+    console.log(`Rebalancing portfolio ${portfolio.name}`);
+    alert('Portfolio rebalanced successfully!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="flex space-x-4">
+        <div className="w-1/3 bg-white shadow-md rounded-lg p-4">
+          <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr>
+                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Name</th>
+                <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              {portfolio.stocks.map((stock, index) => (
+                <tr key={index} className="hover:bg-gray-100">
+                  <td className="py-2 px-4 border-b border-gray-200">{stock.name}</td>
+                  <td className="py-2 px-4 border-b border-gray-200">{stock.percentage}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <button 
+            onClick={handleRebalance} 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Rebalance Portfolio
+          </button>
+        </div>
+        <div className="w-2/3 flex flex-col space-y-4">
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <PortfolioDiversity portfolio={portfolio} />
+          </div>
+          <div className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
+            <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
+            <p><strong>Invested:</strong> {portfolio.invested}</p>
+            <p><strong>Portfolio Worth:</strong> {portfolio.worth}</p>
+            <p><strong>Allocation:</strong> {JSON.stringify(portfolio.allocation, null, 2)}</p>
+            <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity, null, 2)}</p>
+            <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass, null, 2)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default PortfolioDetail;
+```
+
+### Explanation
+
+- **Detailed View Button**: The `PortfolioTable` component has been updated to include a button that navigates to the detailed view page.
+- **React Router**: The `PortfolioDetail` page is set up to receive the portfolio ID via the URL parameters.
+- **Detailed View Layout**: The detailed view displays the stocks in the portfolio on the left and the `PortfolioDiversity` and overall performance on the right, one below the other.
+- **Rebalance Button**: A button to rebalance the portfolio is provided, which simulates an API call and shows an alert upon clicking.
+
+### Updated Portfolio Diversity Component
+
+Ensure that `PortfolioDiversity` is set up to accept a portfolio prop correctly and render the allocation view, asset class, and bond equity.
+
+#### `components/PortfolioDiversity.js`
+
+```jsx
+import React, { useState } from 'react';
+import AllocationView from './AllocationView';
+import AssetClass from './AssetClass';
+import BondEquity from './BondEquity';
+
+function PortfolioDiversity({ portfolio }) {
+  const [view, setView] = useState('allocation');
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-4">
+      <div className="flex justify-around mb-4">
+        <button 
+          className={`px-4 py-2 ${view === 'allocation' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
+          onClick={() => setView('allocation')}
+        >
+          Allocation View
+        </button>
+        <button 
+          className={`px-4 py-2 ${view === 'bond' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
+          onClick={() => setView('bond')}
+        >
+          Bond Equity
+        </button>
+        <button 
+          className={`px-4 py-2 ${view === 'asset' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'} rounded`}
+          onClick={() => setView('asset')}
+        >
+          Asset Class
+        </button>
+      </div>
+      {view === 'allocation' && <AllocationView allocation={portfolio.allocation} />}
+      {view === 'bond' && <BondEquity bondEquity={portfolio.bondEquity} />}
+      {view === 'asset' && <AssetClass assetClass={portfolio.assetClass} />}
+    </div>
+  );
+}
+
+export default PortfolioDiversity;
+```
+
+Now you have a setup where clicking on a portfolio in the summary navigates to a detailed view page, which displays detailed information about the portfolio and allows rebalancing.

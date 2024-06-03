@@ -1,10 +1,8 @@
-Sure, we'll add functionality to expand a detailed view of a portfolio below the selected row in the `PortfolioTable`. We will use state to manage which portfolio is expanded and conditionally render the detailed view.
+Sure, we can update the `PortfolioTable` component to display the profit/loss values in green or red based on their value. We'll use conditional classes to achieve this.
 
-### Step 1: Update `PortfolioTable` Component
+### Updated `PortfolioTable.js`
 
-First, let's update the `PortfolioTable` component to handle the click event and manage the expanded state.
-
-#### `components/PortfolioTable.js`
+Here's the updated `PortfolioTable` component:
 
 ```jsx
 import React, { useState } from 'react';
@@ -32,7 +30,11 @@ function PortfolioTable({ portfolios, onSelectPortfolio }) {
             <React.Fragment key={index}>
               <tr onClick={() => { onSelectPortfolio(index); toggleExpand(index); }} className="cursor-pointer hover:bg-gray-100">
                 <td className="py-2 px-4 border-b border-gray-200">{portfolio.name}</td>
-                <td className="py-2 px-4 border-b border-gray-200">{portfolio.profitLoss}</td>
+                <td className="py-2 px-4 border-b border-gray-200">
+                  <span className={`block ${portfolio.profitLoss.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                    {`${portfolio.profitLoss.startsWith('+') ? '▲' : '▼'} ${portfolio.profitLoss}`}
+                  </span>
+                </td>
                 <td className="py-2 px-4 border-b border-gray-200">{portfolio.invested}</td>
                 <td className="py-2 px-4 border-b border-gray-200">{portfolio.worth}</td>
               </tr>
@@ -64,13 +66,12 @@ export default PortfolioTable;
 
 ### Explanation
 
-- **State Management**: `expandedPortfolio` is used to track which portfolio is currently expanded.
-- **Toggle Function**: `toggleExpand` toggles the expanded state for the clicked portfolio row.
-- **Conditional Rendering**: If `expandedPortfolio` matches the current row index, an additional row with detailed information is rendered below the selected row.
+- **Conditional Classes**: We use `portfolio.profitLoss.startsWith('+')` to determine if the value is positive. If it is, we apply the `text-green-500` class; otherwise, we apply the `text-red-500` class.
+- **Profit/Loss Display**: We display the value with an arrow (▲ or ▼) based on whether it is positive or negative.
 
-### Step 2: Update `Portfolio.jsx` for Consistency
+### Complete Portfolio.jsx and PortfolioDiversity.jsx
 
-Ensure that `Portfolio.jsx` passes the necessary props to `PortfolioTable` and handles the layout correctly.
+Ensure that your `Portfolio.jsx` and `PortfolioDiversity.jsx` are correctly set up to pass the necessary props.
 
 #### `pages/Portfolio.jsx`
 
@@ -150,4 +151,8 @@ function Portfolio() {
 export default Portfolio;
 ```
 
-With these changes, clicking on a portfolio row in the table will expand to show a detailed view directly below it, with an animation effect due to the conditional rendering. This detailed view includes comprehensive information about the selected portfolio.
+### Detailed View Page
+
+If you want the detailed view to open on a separate page, you would typically use a router (e.g., React Router) to handle navigation to a new page. Here, we've implemented an inline expansion for simplicity.
+
+You can further enhance this by navigating to a detailed view page using React Router and passing the selected portfolio data as props or through a state management solution like Redux.

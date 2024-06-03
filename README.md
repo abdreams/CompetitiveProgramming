@@ -1,155 +1,148 @@
-To achieve the layout with two divs, each containing two components stacked one below the other, we'll adjust the `PortfolioDetail` component to use a flexbox layout. The left and right containers will each contain two components arranged vertically.
+To achieve this, we'll create a navbar component that conditionally renders the "Sign In" button or a user info button based on the user's authentication status. When the user info button is clicked, a user card will be displayed with the user's name, email, and a sign-out option.
 
 ### Step-by-Step Implementation
 
-### Step 1: Update `PortfolioDetail.jsx`
+1. **Create a Navbar Component**: This will include the conditional rendering for the "Sign In" button and the user info button.
+2. **Create a UserCard Component**: This will display the user's name, email, and a sign-out button.
+3. **Update the Main App Component**: Integrate the Navbar and manage user authentication state.
 
-#### `pages/PortfolioDetail.jsx`
+### Step 1: Create `Navbar.jsx`
+
+#### `components/Navbar.jsx`
+
+```jsx
+import React, { useState } from 'react';
+import UserCard from './UserCard';
+
+function Navbar({ isAuthenticated, user, onSignIn, onSignOut }) {
+  const [showUserCard, setShowUserCard] = useState(false);
+
+  const toggleUserCard = () => setShowUserCard(!showUserCard);
+
+  return (
+    <nav className="bg-gray-800 p-4 text-white flex justify-between items-center">
+      <div className="text-lg font-semibold">My App</div>
+      {isAuthenticated ? (
+        <div className="relative">
+          <button 
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={toggleUserCard}
+          >
+            User Info
+          </button>
+          {showUserCard && (
+            <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-lg shadow-lg">
+              <UserCard user={user} onSignOut={onSignOut} />
+            </div>
+          )}
+        </div>
+      ) : (
+        <button 
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          onClick={onSignIn}
+        >
+          Sign In
+        </button>
+      )}
+    </nav>
+  );
+}
+
+export default Navbar;
+```
+
+### Step 2: Create `UserCard.jsx`
+
+#### `components/UserCard.jsx`
 
 ```jsx
 import React from 'react';
-import { useParams } from 'react-router-dom';
-import PortfolioDiversity from '../components/PortfolioDiversity';
-import ChartComponent from '../components/ChartComponent';  // Assuming this component renders the chart
 
-const sampleData = [
-  {
-    name: 'Portfolio 1',
-    profitLoss: '+5%',
-    invested: '$100,000',
-    worth: '$105,000',
-    allocation: {
-      bigTech: 60,
-      stocks: 12,
-      energy: 11,
-      ecommerce: 12,
-      funds: 5,
-      tsla: 40
-    },
-    bondEquity: {
-      bonds: 50,
-      equities: 50
-    },
-    assetClass: {
-      realEstate: 25,
-      commodities: 25,
-      crypto: 25,
-      others: 25
-    },
-    stocks: [
-      { name: 'AAPL', percentage: 20 },
-      { name: 'GOOGL', percentage: 15 },
-      { name: 'TSLA', percentage: 25 },
-      { name: 'AMZN', percentage: 20 },
-      { name: 'MSFT', percentage: 20 }
-    ]
-  },
-  {
-    name: 'Portfolio 2',
-    profitLoss: '-2%',
-    invested: '$200,000',
-    worth: '$196,000',
-    allocation: {
-      bigTech: 50,
-      stocks: 20,
-      energy: 10,
-      ecommerce: 15,
-      funds: 5,
-      tsla: 30
-    },
-    bondEquity: {
-      bonds: 40,
-      equities: 60
-    },
-    assetClass: {
-      realEstate: 20,
-      commodities: 30,
-      crypto: 30,
-      others: 20
-    },
-    stocks: [
-      { name: 'NFLX', percentage: 10 },
-      { name: 'DIS', percentage: 20 },
-      { name: 'FB', percentage: 20 },
-      { name: 'NVDA', percentage: 25 },
-      { name: 'ADBE', percentage: 25 }
-    ]
-  }
-];
-
-function PortfolioDetail() {
-  const { id } = useParams();
-  const portfolio = sampleData[id];
-
-  const handleRebalance = () => {
-    // Simulate an API call to rebalance the portfolio
-    console.log(`Rebalancing portfolio ${portfolio.name}`);
-    alert('Portfolio rebalanced successfully!');
-  };
-
+function UserCard({ user, onSignOut }) {
   return (
-    <div className="min-h-screen bg-gray-100 p-4 flex flex-col items-center">
-      <div className="flex w-full max-w-6xl gap-4">
-        {/* Left Column */}
-        <div className="flex flex-col w-1/2 space-y-4">
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-lg font-medium mb-2">Stocks in {portfolio.name}</h3>
-            <table className="min-w-full bg-white">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Name</th>
-                  <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
-                </tr>
-              </thead>
-              <tbody>
-                {portfolio.stocks.map((stock, index) => (
-                  <tr key={index} className="hover:bg-gray-100">
-                    <td className="py-2 px-4 border-b border-gray-200">{stock.name}</td>
-                    <td className="py-2 px-4 border-b border-gray-200">{stock.percentage}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button 
-              onClick={handleRebalance} 
-              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Rebalance Portfolio
-            </button>
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-lg font-medium mb-2">Overall Performance</h3>
-            <p><strong>Profit/Loss:</strong> {portfolio.profitLoss}</p>
-            <p><strong>Invested:</strong> {portfolio.invested}</p>
-            <p><strong>Portfolio Worth:</strong> {portfolio.worth}</p>
-            <p><strong>Allocation:</strong> {JSON.stringify(portfolio.allocation, null, 2)}</p>
-            <p><strong>Bond Equity:</strong> {JSON.stringify(portfolio.bondEquity, null, 2)}</p>
-            <p><strong>Asset Class:</strong> {JSON.stringify(portfolio.assetClass, null, 2)}</p>
-          </div>
-        </div>
-
-        {/* Right Column */}
-        <div className="flex flex-col w-1/2 space-y-4">
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <PortfolioDiversity portfolio={portfolio} />
-          </div>
-          <div className="bg-white shadow-md rounded-lg p-4">
-            <ChartComponent data={portfolio.allocation} /> {/* Placeholder for the chart component */}
-          </div>
-        </div>
-      </div>
+    <div className="p-4">
+      <p><strong>Name:</strong> {user.name}</p>
+      <p><strong>Email:</strong> {user.email}</p>
+      <button 
+        className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+        onClick={onSignOut}
+      >
+        Sign Out
+      </button>
     </div>
   );
 }
 
-export default PortfolioDetail;
+export default UserCard;
+```
+
+### Step 3: Update the Main App Component
+
+#### `App.jsx`
+
+```jsx
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import Portfolio from './pages/Portfolio';
+import PortfolioDetail from './pages/PortfolioDetail';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+
+const sampleUser = {
+  name: 'John Doe',
+  email: 'johndoe@example.com'
+};
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const handleSignIn = () => {
+    // Simulate sign-in process
+    setUser(sampleUser);
+    setIsAuthenticated(true);
+  };
+
+  const handleSignOut = () => {
+    // Simulate sign-out process
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <Router>
+      <div>
+        <Navbar 
+          isAuthenticated={isAuthenticated} 
+          user={user} 
+          onSignIn={handleSignIn} 
+          onSignOut={handleSignOut} 
+        />
+        <Switch>
+          <Route path="/portfolio/:id" component={PortfolioDetail} />
+          <Route path="/" component={Portfolio} />
+        </Switch>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
 ```
 
 ### Explanation
 
-- **Flexbox Layout**: The main container is set to use flex (`flex flex-col items-center`) to center the content. Inside it, a flexbox layout is used to split the content into two columns.
-- **Two Columns**: Each column (`div` with `w-1/2`) contains two components stacked vertically (`flex flex-col space-y-4`).
-- **Component Placement**: The stocks table and overall performance are placed in the left column. The `PortfolioDiversity` and `ChartComponent` are placed in the right column.
-- **Spacing**: Tailwind CSS utilities (`space-y-4`) are used to add vertical spacing between components within each column.
+1. **Navbar Component**:
+    - Displays a "Sign In" button if the user is not authenticated.
+    - Displays a "User Info" button if the user is authenticated. Clicking this button toggles the display of the `UserCard`.
+    - The `UserCard` component is conditionally rendered as a dropdown menu.
 
-This layout should ensure the components are displayed in the desired positions, effectively using the available space without unnecessary wrapping elements.
+2. **UserCard Component**:
+    - Displays the user's name, email, and a "Sign Out" button.
+    - Calls the `onSignOut` function passed as a prop when the "Sign Out" button is clicked.
+
+3. **Main App Component**:
+    - Manages the authentication state (`isAuthenticated` and `user`).
+    - Passes the necessary props to the `Navbar` component.
+    - Routes to the portfolio and portfolio detail pages.
+
+This setup ensures that the navbar dynamically updates based on the user's authentication status and provides a user-friendly way to display user information and sign out.

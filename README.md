@@ -1,4 +1,4 @@
-Here's the updated `MarketSectorsPage.js` component with a separate arrow for sorting by change:
+Absolutely! Here's the updated `MarketSectorsPage.js` with a search bar that filters by name using a hook:
 
 ```javascript
 import React, { useState } from 'react';
@@ -9,46 +9,43 @@ const dummyData = [
 ];
 
 const MarketSectorsPage = () => {
-  const [sortOrderValue, setSortOrderValue] = useState('asc'); // Sort order for value
-  const [sortOrderChange, setSortOrderChange] = useState(null); // Sort order for change (null means not sorted by change)
-
-  const [data, setData] = useState(dummyData);
+  const [sortOrderValue, setSortOrderValue] = useState('asc');
+  const [sortOrderChange, setSortOrderChange] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+  const [filteredData, setFilteredData] = useState(dummyData); // State for filtered data
 
   const sortData = (order, field) => {
-    const sortedData = [...data].sort((a, b) => {
-      if (field === 'value') {
-        if (order === 'asc') {
-          return a.value - b.value;
-        }
-        return b.value - a.value;
-      } else if (field === 'change') {
-        if (order === 'asc') {
-          return a.change - b.change;
-        }
-        return b.change - a.change;
-      }
-      // Default to sorting by value
-      return a.value - b.value;
-    });
-    setData(sortedData);
+    // ... existing sort logic
   };
 
   const toggleSortOrderValue = () => {
-    const newOrder = sortOrderValue === 'asc' ? 'desc' : 'asc';
-    sortData(newOrder, 'value');
-    setSortOrderValue(newOrder);
+    // ... existing logic
   };
 
   const toggleSortOrderChange = () => {
-    const newOrder = sortOrderChange === null ? 'asc' : (sortOrderChange === 'asc' ? 'desc' : null);
-    sortData(newOrder, 'change');
-    setSortOrderChange(newOrder);
+    // ... existing logic
+  };
+
+  const handleSearch = (event) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+    const filtered = dummyData.filter((sector) => sector.name.toLowerCase().includes(query));
+    setFilteredData(filtered);
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-6">
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-4xl">
         <h2 className="text-3xl font-semibold mb-6 text-center">Market Sectors</h2>
+        <div className="mb-4">
+          <input
+            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
+            type="text"
+            placeholder="Search by Name"
+            value={searchQuery}
+            onChange={handleSearch}
+          />
+        </div>
         <table className="min-w-full bg-white rounded-lg shadow-md">
           <thead>
             <tr>
@@ -70,7 +67,7 @@ const MarketSectorsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((sector, index) => (
+            {filteredData.map((sector, index) => (
               <tr key={index}>
                 <td className="py-2 px-4 border-b">{sector.name}</td>
                 <td className="py-2 px-4 border-b">{sector.value.toFixed(2)}</td>
@@ -91,7 +88,8 @@ export default MarketSectorsPage;
 
 Changes made:
 
-1. **Separate Sort State:** We introduced two separate states: `sortOrderValue` for value sorting and `sortOrderChange` for change sorting. `sortOrderChange` can be null, indicating no sorting by change is applied.
-2. **`sortData` Function Update:** The `sortData` function now takes an additional parameter `field` to specify which field to sort by (`value` or `change`).
-3. **Separate Toggle Functions:** We created separate toggle functions `toggleSortOrderValue` and `toggleSortOrderChange` to handle sorting by value and change independently.
-4. **Arrow Logic for Change:** The table header for "Change" now displays an arrow only when sorted by change (`sortOrderChange`
+1. **Search State and Function:** We added a new state `searchQuery` to store the user's search term and a function `handleSearch` to update it as the user types.
+2. **Filtered Data:** We introduced a new state `filteredData` to hold the data after applying the search filter.
+3. **Filtering Logic:** The `handleSearch` function filters the original data (`dummyData`) based on the lowercase search term and updates the `filteredData` state.
+4. **Displaying Filtered Data:** The table body now iterates through `filteredData` instead of `dummyData` to display the filtered results.
+5. **Search Bar:** We added an input element with styling and placeholder text for the search bar.

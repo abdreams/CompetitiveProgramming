@@ -1,116 +1,189 @@
-To create a card similar to the one in the image but with the specified modifications (name and age on the right, email address below, and a sign-out button), we can use the following implementation. We'll ensure the top picture is red and the layout matches the provided specifications.
+To implement automatic logout after a period of user inactivity, you can follow these steps:
 
-### Step-by-Step Implementation
+1. **Set up Redux slices**: You already have the `userSlice` with `login` and `logout` reducers. We need to dispatch these actions based on user activity.
 
-1. **Create the UserCard Component**: This component will render the user information along with the sign-out button.
-2. **Use Tailwind CSS for Styling**: Tailwind CSS will be used for styling the card and the components.
+2. **Create a timeout hook**: Create a custom hook to detect user inactivity.
 
-### Step 1: Create `UserCard.jsx`
+3. **Integrate the hook in your application**: Use the hook in your main component to monitor user activity and dispatch the logout action when the user is idle.
 
-#### `components/UserCard.jsx`
+### Step 1: Setup Redux Slices
 
-```jsx
-import React from 'react';
+Ensure your Redux slices are set up correctly in `userSlice.js`.
 
-function UserCard({ user, onSignOut }) {
-  return (
-    <div className="max-w-sm rounded overflow-hidden shadow-lg">
-      <div className="bg-red-500 h-32 flex items-center justify-center">
-        <img 
-          className="rounded-full border-4 border-white -mt-16" 
-          src={user.profileImage} 
-          alt={`${user.name}`} 
-          style={{ width: '80px', height: '80px' }}
-        />
-      </div>
-      <div className="px-6 py-4 text-center">
-        <div className="font-bold text-xl mb-2">
-          <span>{user.name}</span>
-          <span className="text-gray-500 ml-2">{user.age}</span>
-        </div>
-        <p className="text-gray-700 text-base">{user.email}</p>
-      </div>
-      <div className="px-6 py-4 text-center">
-        <button 
-          className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          onClick={onSignOut}
-        >
-          Sign Out
-        </button>
-      </div>
-    </div>
-  );
-}
+#### `redux/slices/user/userSlice.js`
 
-export default UserCard;
+```javascript
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  isAuthenticated: false,
+  user: null,
+};
+
+const userSlice = createSlice({
+  name: 'user',
+  initialState,
+  reducers: {
+    login: (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload;
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+    },
+  },
+});
+
+export const { login, logout } = userSlice.actions;
+
+export default userSlice.reducer;
 ```
 
-### Step 2: Update `Navbar.jsx`
+### Step 2: Create a Timeout Hook
 
-Ensure the `Navbar` component uses the updated `UserCard` component.
+Create a custom hook to handle user inactivity.
 
-#### `components/Navbar.jsx`
+#### `hooks/useIdleTimeout.js`
 
-```jsx
-import React, { useState } from 'react';
-import UserCard from './UserCard';
+```javascript
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/slices/user/userSlice';
 
-function Navbar({ isAuthenticated, user, onSignIn, onSignOut }) {
-  const [showUserCard, setShowUserCard] = useState(false);
+const useIdleTimeout = (timeout = 300000) => { // default 5 minutes
+  const dispatch = useDispatch();
 
-  const toggleUserCard = () => setShowUserCard(!showUserCard);
+  useEffect(() => {
+    let timer;
 
-  return (
-    <nav className="bg-gray-800 p-4 text-white flex justify-between items-center">
-      <div className="text-lg font-semibold">My App</div>
-      {isAuthenticated ? (
-        <div className="relative">
-          <button 
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={toggleUserCard}
-          >
-            User Info
-          </button>
-          {showUserCard && (
-            <div className="absolute right-0 mt-2 w-64 bg-white text-black rounded-lg shadow-lg">
-              <UserCard user={user} onSignOut={onSignOut} />
-            </div>
-          )}
-        </div>
-      ) : (
-        <button 
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={onSignIn}
-        >
-          Sign In
-        </button>
-      )}
-    </nav>
-  );
-}
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        dispatch(logout());
+      }, timeout);
+    };
 
-export default Navbar;
+    const handleActivity = () => {
+      resetTimer();
+    };
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keypress', handleActivity);
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keypress', handleActivity);
+    };
+  }, [dispatch, timeout]);
+};
+
+export default useIdleTimeout;
 ```
 
-### Step 3: Update `App.jsx`
+### Step 3: Integrate the Hook in Your Main Component
 
-Ensure the main application component uses the `Navbar` component and manages the user authentication state.
+Use the hook in your main component to monitor user activity and dispatch the logout action when the user is idle.
 
 #### `App.jsx`
 
 ```jsx
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
 import Navbar from './components/Navbar';
 import Portfolio from './pages/Portfolio';
 import PortfolioDetail from './pages/PortfolioDetail';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import useIdleTimeout from './hooks/useIdleTimeout';
 
 const sampleUser = {
   name: 'Victor Crest',
   age: 26,
   email: 'victor.crest@example.com',
-  profileImage: '/path/to/profile/image.jpg'  // Provide the correct path to the profile image
+  profileImage: 'https://via.placeholder.com/150',  // Replace with actual image URL if available
 };
 
 function App() {
-  const [isAuthenticated, setIs
+  const [user, setUser] = useState(null);
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+
+  useIdleTimeout(300000); // 5 minutes timeout
+
+  const handleSignIn = () => {
+    setUser(sampleUser);
+    setIsAuthenticated(true);
+  };
+
+  const handleSignOut = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <Router>
+      <div>
+        <Navbar 
+          isAuthenticated={isAuthenticated} 
+          user={user} 
+          onSignIn={handleSignIn} 
+          onSignOut={handleSignOut} 
+        />
+        <Switch>
+          <Route path="/portfolio/:id" component={PortfolioDetail} />
+          <Route path="/" component={Portfolio} />
+        </Switch>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+### Step 4: Set Up Redux Store
+
+Ensure your Redux store is set up to use the user slice.
+
+#### `redux/store.js`
+
+```javascript
+import { configureStore } from '@reduxjs/toolkit';
+import userReducer from './slices/user/userSlice';
+
+const store = configureStore({
+  reducer: {
+    user: userReducer,
+  },
+});
+
+export default store;
+```
+
+#### `index.js`
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import App from './App';
+import store from './redux/store';
+
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);
+```
+
+### Explanation
+
+1. **Redux Slice**: The `userSlice` handles login and logout actions.
+2. **Custom Hook**: The `useIdleTimeout` hook monitors user activity and dispatches the logout action after a period of inactivity.
+3. **Main Component**: The `App` component uses the `useIdleTimeout` hook to log out the user after 5 minutes of inactivity.
+4. **Redux Store**: The Redux store is set up to include the `userSlice`.
+
+This setup ensures that the user is logged out automatically after a period of inactivity, enhancing the security of your application.

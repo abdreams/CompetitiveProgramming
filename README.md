@@ -1,189 +1,170 @@
-To implement automatic logout after a period of user inactivity, you can follow these steps:
+To create a `MarketSectorsPage` component that opens when "See All" is clicked in the `MarketSectors` component, and contains a table with columns for name, value, and change along with a filter for high to low, follow these steps:
 
-1. **Set up Redux slices**: You already have the `userSlice` with `login` and `logout` reducers. We need to dispatch these actions based on user activity.
+### 1. Create `MarketSectorsPage` Component
 
-2. **Create a timeout hook**: Create a custom hook to detect user inactivity.
-
-3. **Integrate the hook in your application**: Use the hook in your main component to monitor user activity and dispatch the logout action when the user is idle.
-
-### Step 1: Setup Redux Slices
-
-Ensure your Redux slices are set up correctly in `userSlice.js`.
-
-#### `redux/slices/user/userSlice.js`
-
-```javascript
-import { createSlice } from '@reduxjs/toolkit';
-
-const initialState = {
-  isAuthenticated: false,
-  user: null,
-};
-
-const userSlice = createSlice({
-  name: 'user',
-  initialState,
-  reducers: {
-    login: (state, action) => {
-      state.isAuthenticated = true;
-      state.user = action.payload;
-    },
-    logout: (state) => {
-      state.isAuthenticated = false;
-      state.user = null;
-    },
-  },
-});
-
-export const { login, logout } = userSlice.actions;
-
-export default userSlice.reducer;
-```
-
-### Step 2: Create a Timeout Hook
-
-Create a custom hook to handle user inactivity.
-
-#### `hooks/useIdleTimeout.js`
-
-```javascript
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { logout } from '../redux/slices/user/userSlice';
-
-const useIdleTimeout = (timeout = 300000) => { // default 5 minutes
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    let timer;
-
-    const resetTimer = () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        dispatch(logout());
-      }, timeout);
-    };
-
-    const handleActivity = () => {
-      resetTimer();
-    };
-
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keypress', handleActivity);
-
-    resetTimer();
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keypress', handleActivity);
-    };
-  }, [dispatch, timeout]);
-};
-
-export default useIdleTimeout;
-```
-
-### Step 3: Integrate the Hook in Your Main Component
-
-Use the hook in your main component to monitor user activity and dispatch the logout action when the user is idle.
-
-#### `App.jsx`
+#### `MarketSectorsPage.js`
 
 ```jsx
+// src/components/MarketSectorsPage.js
 import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import Navbar from './components/Navbar';
-import Portfolio from './pages/Portfolio';
-import PortfolioDetail from './pages/PortfolioDetail';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import useIdleTimeout from './hooks/useIdleTimeout';
 
-const sampleUser = {
-  name: 'Victor Crest',
-  age: 26,
-  email: 'victor.crest@example.com',
-  profileImage: 'https://via.placeholder.com/150',  // Replace with actual image URL if available
-};
+const dummyData = [
+  { name: 'NIFTY 50', value: 22550.40, change: 0.27 },
+  { name: 'USD/INR', value: 83.52, change: 0.19 },
+  { name: 'Gold', value: 7385.95, change: -0.07 },
+  { name: 'NIFTY 100 Largecap', value: 23538.60, change: 0.31 },
+  { name: 'NIFTY 100 Midcap', value: 51735.95, change: 0.60 },
+  { name: 'NIFTY 100 Smallcap', value: 16710.25, change: 0.59 },
+  { name: 'NIFTY Bank', value: 48982.40, change: 0.62 },
+  { name: 'NIFTY IT', value: 32458.85, change: -1.06 },
+  { name: 'NIFTY Pharma', value: 18849.70, change: -0.64 },
+];
 
-function App() {
-  const [user, setUser] = useState(null);
-  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+const MarketSectorsPage = () => {
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [data, setData] = useState(dummyData);
 
-  useIdleTimeout(300000); // 5 minutes timeout
-
-  const handleSignIn = () => {
-    setUser(sampleUser);
-    setIsAuthenticated(true);
-  };
-
-  const handleSignOut = () => {
-    setUser(null);
-    setIsAuthenticated(false);
+  const sortData = (order) => {
+    const sortedData = [...data].sort((a, b) => {
+      if (order === 'asc') {
+        return a.value - b.value;
+      }
+      return b.value - a.value;
+    });
+    setData(sortedData);
+    setSortOrder(order);
   };
 
   return (
+    <div className="min-h-screen bg-gray-100 p-6">
+      <h2 className="text-3xl font-semibold mb-6">Market Sectors</h2>
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        onClick={() => sortData(sortOrder === 'asc' ? 'desc' : 'asc')}
+      >
+        Sort by Value ({sortOrder === 'asc' ? 'High to Low' : 'Low to High'})
+      </button>
+      <table className="min-w-full bg-white rounded-lg shadow-md">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b">Name</th>
+            <th className="py-2 px-4 border-b">Value</th>
+            <th className="py-2 px-4 border-b">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((sector, index) => (
+            <tr key={index}>
+              <td className="py-2 px-4 border-b">{sector.name}</td>
+              <td className="py-2 px-4 border-b">{sector.value.toFixed(2)}</td>
+              <td className={`py-2 px-4 border-b ${sector.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {sector.change > 0 ? `▲ ${sector.change}%` : `▼ ${sector.change}%`}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default MarketSectorsPage;
+```
+
+### 2. Update `App.js` for Routing
+
+To handle the navigation, install `react-router-dom` if not already installed:
+
+```bash
+npm install react-router-dom
+```
+
+Then update `App.js` to include routing:
+
+```jsx
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Marquee from './components/Marquee';
+import Navbar from './components/Navbar';
+import MarketStatus from './components/MarketStatus';
+import MarketSectors from './components/MarketSectors';
+import GetStarted from './components/GetStarted';
+import News from './components/News';
+import TodaysStocks from './components/TodaysStocks';
+import MarketSectorsPage from './components/MarketSectorsPage';
+
+const App = () => {
+  return (
     <Router>
-      <div>
-        <Navbar 
-          isAuthenticated={isAuthenticated} 
-          user={user} 
-          onSignIn={handleSignIn} 
-          onSignOut={handleSignOut} 
-        />
+      <div className="min-h-screen bg-gray-100">
+        <Navbar />
+        <Marquee />
+        <MarketStatus />
         <Switch>
-          <Route path="/portfolio/:id" component={PortfolioDetail} />
-          <Route path="/" component={Portfolio} />
+          <Route exact path="/">
+            <div className="p-6">
+              <MarketSectors />
+              <div className="flex justify-between mt-6">
+                <div className="w-2/3 mr-6">
+                  <GetStarted />
+                  <TodaysStocks />
+                </div>
+                <div className="w-1/3">
+                  <News />
+                </div>
+              </div>
+            </div>
+          </Route>
+          <Route path="/market-sectors" component={MarketSectorsPage} />
         </Switch>
       </div>
     </Router>
   );
-}
+};
 
 export default App;
 ```
 
-### Step 4: Set Up Redux Store
+### 3. Update `MarketSectors.js`
 
-Ensure your Redux store is set up to use the user slice.
-
-#### `redux/store.js`
-
-```javascript
-import { configureStore } from '@reduxjs/toolkit';
-import userReducer from './slices/user/userSlice';
-
-const store = configureStore({
-  reducer: {
-    user: userReducer,
-  },
-});
-
-export default store;
-```
-
-#### `index.js`
+Ensure that clicking "See All" navigates to the `MarketSectorsPage`.
 
 ```jsx
+// src/components/MarketSectors.js
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import App from './App';
-import store from './redux/store';
+import { Link } from 'react-router-dom';
 
-ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById('root')
-);
+const MarketSectors = () => {
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Market and sectors</h2>
+        <Link to="/market-sectors" className="text-blue-500">See All</Link>
+      </div>
+      <table className="min-w-full bg-white rounded-lg shadow-md">
+        <thead>
+          <tr>
+            <th className="py-2 px-4 border-b">Name</th>
+            <th className="py-2 px-4 border-b">Value</th>
+            <th className="py-2 px-4 border-b">Change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Populate with data similar to the example */}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+export default MarketSectors;
 ```
 
-### Explanation
+### Final Steps
 
-1. **Redux Slice**: The `userSlice` handles login and logout actions.
-2. **Custom Hook**: The `useIdleTimeout` hook monitors user activity and dispatches the logout action after a period of inactivity.
-3. **Main Component**: The `App` component uses the `useIdleTimeout` hook to log out the user after 5 minutes of inactivity.
-4. **Redux Store**: The Redux store is set up to include the `userSlice`.
+1. Create `src/components/MarketSectorsPage.js`.
+2. Update `App.js` to include routing.
+3. Update `MarketSectors.js` to navigate to the new page.
 
-This setup ensures that the user is logged out automatically after a period of inactivity, enhancing the security of your application.
+This setup will enable you to click "See All" in the `MarketSectors` component and navigate to a new page (`MarketSectorsPage`) with a table that can be sorted by value.

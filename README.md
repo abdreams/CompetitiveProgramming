@@ -1,6 +1,6 @@
-To create a `MarketSectorsPage` component that opens when "See All" is clicked in the `MarketSectors` component, and contains a table with columns for name, value, and change along with a filter for high to low, follow these steps:
+Let's adjust the `MarketSectorsPage` component to center it horizontally and move the "Market Sectors" heading to the center of the table. We'll also add sorting functionality directly on the column heading for the value column.
 
-### 1. Create `MarketSectorsPage` Component
+### 1. Update `MarketSectorsPage` Component
 
 #### `MarketSectorsPage.js`
 
@@ -35,35 +35,42 @@ const MarketSectorsPage = () => {
     setSortOrder(order);
   };
 
+  const toggleSortOrder = () => {
+    const newOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+    sortData(newOrder);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h2 className="text-3xl font-semibold mb-6">Market Sectors</h2>
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-        onClick={() => sortData(sortOrder === 'asc' ? 'desc' : 'asc')}
-      >
-        Sort by Value ({sortOrder === 'asc' ? 'High to Low' : 'Low to High'})
-      </button>
-      <table className="min-w-full bg-white rounded-lg shadow-md">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">Name</th>
-            <th className="py-2 px-4 border-b">Value</th>
-            <th className="py-2 px-4 border-b">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((sector, index) => (
-            <tr key={index}>
-              <td className="py-2 px-4 border-b">{sector.name}</td>
-              <td className="py-2 px-4 border-b">{sector.value.toFixed(2)}</td>
-              <td className={`py-2 px-4 border-b ${sector.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {sector.change > 0 ? `▲ ${sector.change}%` : `▼ ${sector.change}%`}
-              </td>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-6">
+      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-4xl">
+        <h2 className="text-3xl font-semibold mb-6 text-center">Market Sectors</h2>
+        <table className="min-w-full bg-white rounded-lg shadow-md">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b text-left">Name</th>
+              <th
+                className="py-2 px-4 border-b text-left cursor-pointer"
+                onClick={toggleSortOrder}
+              >
+                Value
+                {sortOrder === 'asc' ? ' ▲' : ' ▼'}
+              </th>
+              <th className="py-2 px-4 border-b text-left">Change</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((sector, index) => (
+              <tr key={index}>
+                <td className="py-2 px-4 border-b">{sector.name}</td>
+                <td className="py-2 px-4 border-b">{sector.value.toFixed(2)}</td>
+                <td className={`py-2 px-4 border-b ${sector.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {sector.change > 0 ? `▲ ${sector.change}%` : `▼ ${sector.change}%`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
@@ -71,100 +78,101 @@ const MarketSectorsPage = () => {
 export default MarketSectorsPage;
 ```
 
-### 2. Update `App.js` for Routing
+### 2. Update CSS for Alignment
 
-To handle the navigation, install `react-router-dom` if not already installed:
+Ensure the container divs are centered and the table header is aligned properly.
 
-```bash
-npm install react-router-dom
+#### Additional CSS (if needed)
+
+If you are using Tailwind CSS, the above code should work as expected. If not, ensure your CSS is similar to the following:
+
+```css
+/* src/index.css or App.css */
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.bg-gray-100 {
+  background-color: #f7fafc;
+}
+
+.p-6 {
+  padding: 1.5rem;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-4xl {
+  max-width: 64rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.text-3xl {
+  font-size: 1.875rem;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.min-w-full {
+  min-width: 100%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.border-b {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.text-green-500 {
+  color: #48bb78;
+}
+
+.text-red-500 {
+  color: #f56565;
+}
 ```
 
-Then update `App.js` to include routing:
+### 3. Update `App.js` for Routing
 
-```jsx
-// src/App.js
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Marquee from './components/Marquee';
-import Navbar from './components/Navbar';
-import MarketStatus from './components/MarketStatus';
-import MarketSectors from './components/MarketSectors';
-import GetStarted from './components/GetStarted';
-import News from './components/News';
-import TodaysStocks from './components/TodaysStocks';
-import MarketSectorsPage from './components/MarketSectorsPage';
+Ensure that the routing and navigation to the `MarketSectorsPage` component is correctly set up as shown in the previous step.
 
-const App = () => {
-  return (
-    <Router>
-      <div className="min-h-screen bg-gray-100">
-        <Navbar />
-        <Marquee />
-        <MarketStatus />
-        <Switch>
-          <Route exact path="/">
-            <div className="p-6">
-              <MarketSectors />
-              <div className="flex justify-between mt-6">
-                <div className="w-2/3 mr-6">
-                  <GetStarted />
-                  <TodaysStocks />
-                </div>
-                <div className="w-1/3">
-                  <News />
-                </div>
-              </div>
-            </div>
-          </Route>
-          <Route path="/market-sectors" component={MarketSectorsPage} />
-        </Switch>
-      </div>
-    </Router>
-  );
-};
-
-export default App;
-```
-
-### 3. Update `MarketSectors.js`
-
-Ensure that clicking "See All" navigates to the `MarketSectorsPage`.
-
-```jsx
-// src/components/MarketSectors.js
-import React from 'react';
-import { Link } from 'react-router-dom';
-
-const MarketSectors = () => {
-  return (
-    <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold">Market and sectors</h2>
-        <Link to="/market-sectors" className="text-blue-500">See All</Link>
-      </div>
-      <table className="min-w-full bg-white rounded-lg shadow-md">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">Name</th>
-            <th className="py-2 px-4 border-b">Value</th>
-            <th className="py-2 px-4 border-b">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {/* Populate with data similar to the example */}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-export default MarketSectors;
-```
-
-### Final Steps
-
-1. Create `src/components/MarketSectorsPage.js`.
-2. Update `App.js` to include routing.
-3. Update `MarketSectors.js` to navigate to the new page.
-
-This setup will enable you to click "See All" in the `MarketSectors` component and navigate to a new page (`MarketSectorsPage`) with a table that can be sorted by value.
+Now, the `MarketSectorsPage` component should be centered horizontally on the page, and the table should allow sorting directly from the value column header. The "Market Sectors" heading is centered at the top of the table.

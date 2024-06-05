@@ -1,95 +1,148 @@
-Absolutely! Here's the updated `MarketSectorsPage.js` with a search bar that filters by name using a hook:
+Here’s the refined approach to implementing the detailed view and history page with dummy data, including route changes and appropriate styling:
 
-```javascript
-import React, { useState } from 'react';
+### Step 1: Modify `DetailedView` Component to Redirect with URL Parameter
 
-const dummyData = [
-  { name: 'NIFTY 50', value: 22550.40, change: 0.27 },
-  // ... other data
-];
+First, adjust the `DetailedView` component to use `Link` from `react-router-dom` for navigation.
 
-const MarketSectorsPage = () => {
-  const [sortOrderValue, setSortOrderValue] = useState('asc');
-  const [sortOrderChange, setSortOrderChange] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(''); // State for search query
-  const [filteredData, setFilteredData] = useState(dummyData); // State for filtered data
+```jsx
+// DetailedView.jsx
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-  const sortData = (order, field) => {
-    // ... existing sort logic
-  };
+const DetailedView = ({ data, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-white p-6 m-4 rounded-lg shadow-lg overflow-y-auto">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
+      >
+        &times;
+      </button>
+      <h2 className="text-xl font-bold mb-4">{data.name}</h2>
+      <p className="text-gray-600">{data.description}</p>
+      {/* Include other details here */}
+      <Link
+        to={`/details/${data.name}`}
+        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded inline-block"
+      >
+        View More Details
+      </Link>
+    </div>
+  );
+};
 
-  const toggleSortOrderValue = () => {
-    // ... existing logic
-  };
+export default DetailedView;
+```
 
-  const toggleSortOrderChange = () => {
-    // ... existing logic
-  };
+### Step 2: Create Detailed History Page Component with Dummy Data
 
-  const handleSearch = (event) => {
-    const query = event.target.value.toLowerCase();
-    setSearchQuery(query);
-    const filtered = dummyData.filter((sector) => sector.name.toLowerCase().includes(query));
-    setFilteredData(filtered);
+Now, create the `DetailedHistoryPage` component that receives props and displays dummy data.
+
+```jsx
+// DetailedHistoryPage.jsx
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { Line } from 'react-chartjs-2';
+import 'chart.js/auto';
+
+const DetailedHistoryPage = () => {
+  const { name } = useParams();
+
+  // Dummy data for chart
+  const chartData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Price',
+        data: [100, 200, 150, 300, 250, 400],
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.1
+      }
+    ]
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100 p-6">
-      <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-4xl">
-        <h2 className="text-3xl font-semibold mb-6 text-center">Market Sectors</h2>
-        <div className="mb-4">
-          <input
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-            type="text"
-            placeholder="Search by Name"
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-        </div>
-        <table className="min-w-full bg-white rounded-lg shadow-md">
-          <thead>
-            <tr>
-              <th className="py-2 px-4 border-b text-left">Name</th>
-              <th
-                className={`py-2 px-4 border-b text-left cursor-pointer`}
-                onClick={toggleSortOrderValue}
-              >
-                Value
-                {sortOrderValue === 'asc' ? ' ▲' : ' ▼'}
-              </th>
-              <th
-                className={`py-2 px-4 border-b text-left cursor-pointer`}
-                onClick={toggleSortOrderChange}
-              >
-                Change
-                {sortOrderChange === 'asc' ? ' ▲' : sortOrderChange === 'desc' ? ' ▼' : ''}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((sector, index) => (
-              <tr key={index}>
-                <td className="py-2 px-4 border-b">{sector.name}</td>
-                <td className="py-2 px-4 border-b">{sector.value.toFixed(2)}</td>
-                <td className={`py-2 px-4 border-b ${sector.change > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {sector.change > 0 ? `▲ ${sector.change}%` : `▼ ${sector.change}%`}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">{name} Details</h1>
+      <div className="mb-4">
+        <Line data={chartData} />
+      </div>
+      {/* Add other details here */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="p-4 bg-white rounded shadow">Index: {name}</div>
+        <div className="p-4 bg-white rounded shadow">Largecap: This index consists of largecap companies</div>
+        <div className="p-4 bg-white rounded shadow">Low Risk: This is the benchmark market index</div>
       </div>
     </div>
   );
 };
 
-export default MarketSectorsPage;
+export default DetailedHistoryPage;
 ```
 
-Changes made:
+### Step 3: Setup Routing with URL Parameter
 
-1. **Search State and Function:** We added a new state `searchQuery` to store the user's search term and a function `handleSearch` to update it as the user types.
-2. **Filtered Data:** We introduced a new state `filteredData` to hold the data after applying the search filter.
-3. **Filtering Logic:** The `handleSearch` function filters the original data (`dummyData`) based on the lowercase search term and updates the `filteredData` state.
-4. **Displaying Filtered Data:** The table body now iterates through `filteredData` instead of `dummyData` to display the filtered results.
-5. **Search Bar:** We added an input element with styling and placeholder text for the search bar.
+Update the routing setup to include the dynamic route for detailed history.
+
+```jsx
+// App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import MarketSectorsPage from './pages/MarketSectorsPage';
+import DetailedHistoryPage from './pages/DetailedHistoryPage';
+
+const App = () => {
+  return (
+    <Router>
+      <Switch>
+        <Route path="/" exact component={MarketSectorsPage} />
+        <Route path="/details/:name" component={DetailedHistoryPage} />
+      </Switch>
+    </Router>
+  );
+};
+
+export default App;
+```
+
+### Step 4: Adjust Styling to Match the Provided Image
+
+Ensure your components have Tailwind CSS classes for appropriate styling.
+
+Here are a few example styling updates:
+
+#### DetailedView Component
+```jsx
+// DetailedView.jsx (styles updated)
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const DetailedView = ({ data, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-white p-6 m-4 rounded-lg shadow-lg overflow-y-auto max-w-xl mx-auto">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
+      >
+        &times;
+      </button>
+      <h2 className="text-xl font-bold mb-4">{data.name}</h2>
+      <p className="text-gray-600 mb-6">{data.description}</p>
+      {/* Include other details here */}
+      <Link
+        to={`/details/${data.name}`}
+        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded inline-block"
+      >
+        View More Details
+      </Link>
+    </div>
+  );
+};
+
+export default DetailedView;
+```
+
+### Final Integration
+
+Ensure all components and styles are properly integrated and adjust as needed for a seamless user experience. This setup now allows the user to click a link in the detailed view, which redirects them to a new page displaying detailed history and other information, all styled appropriately.

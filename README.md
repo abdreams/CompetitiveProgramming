@@ -1,42 +1,8 @@
-Here’s the refined approach to implementing the detailed view and history page with dummy data, including route changes and appropriate styling:
+To refine the appearance of the `DetailedHistoryPage`, we will adjust the size and styling of the chart, center it, and give it a white background. Below are the updated steps:
 
-### Step 1: Modify `DetailedView` Component to Redirect with URL Parameter
+### Step 1: Update the `DetailedHistoryPage` Component
 
-First, adjust the `DetailedView` component to use `Link` from `react-router-dom` for navigation.
-
-```jsx
-// DetailedView.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-
-const DetailedView = ({ data, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-white p-6 m-4 rounded-lg shadow-lg overflow-y-auto">
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
-      >
-        &times;
-      </button>
-      <h2 className="text-xl font-bold mb-4">{data.name}</h2>
-      <p className="text-gray-600">{data.description}</p>
-      {/* Include other details here */}
-      <Link
-        to={`/details/${data.name}`}
-        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded inline-block"
-      >
-        View More Details
-      </Link>
-    </div>
-  );
-};
-
-export default DetailedView;
-```
-
-### Step 2: Create Detailed History Page Component with Dummy Data
-
-Now, create the `DetailedHistoryPage` component that receives props and displays dummy data.
+Modify the component to center the chart, reduce its size, and style the surrounding elements.
 
 ```jsx
 // DetailedHistoryPage.jsx
@@ -63,16 +29,15 @@ const DetailedHistoryPage = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-100 min-h-screen flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-4">{name} Details</h1>
-      <div className="mb-4">
-        <Line data={chartData} />
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg mb-6">
+        <Line data={chartData} options={{ maintainAspectRatio: false }} />
       </div>
-      {/* Add other details here */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 bg-white rounded shadow">Index: {name}</div>
-        <div className="p-4 bg-white rounded shadow">Largecap: This index consists of largecap companies</div>
-        <div className="p-4 bg-white rounded shadow">Low Risk: This is the benchmark market index</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+        <div className="p-4 bg-white rounded shadow text-center">Index: {name}</div>
+        <div className="p-4 bg-white rounded shadow text-center">Largecap: This index consists of largecap companies</div>
+        <div className="p-4 bg-white rounded shadow text-center">Low Risk: This is the benchmark market index</div>
       </div>
     </div>
   );
@@ -81,68 +46,51 @@ const DetailedHistoryPage = () => {
 export default DetailedHistoryPage;
 ```
 
-### Step 3: Setup Routing with URL Parameter
+### Step 2: Add Styling to Center and Resize the Chart
 
-Update the routing setup to include the dynamic route for detailed history.
+In the updated `DetailedHistoryPage` component:
 
-```jsx
-// App.jsx
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import MarketSectorsPage from './pages/MarketSectorsPage';
-import DetailedHistoryPage from './pages/DetailedHistoryPage';
+- We have centered the entire content using flexbox.
+- The chart is placed in a centered, responsive container with a white background.
+- Additional details are also centered and styled.
 
-const App = () => {
-  return (
-    <Router>
-      <Switch>
-        <Route path="/" exact component={MarketSectorsPage} />
-        <Route path="/details/:name" component={DetailedHistoryPage} />
-      </Switch>
-    </Router>
-  );
-};
+### Tailwind CSS Classes Used:
+- `p-6 bg-gray-100 min-h-screen flex flex-col items-center`: Centers the content and gives it padding and background color.
+- `w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg mb-6`: Styles the chart container.
+- `grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl`: Creates a responsive grid layout for additional details.
 
-export default App;
+### Step 3: Ensure Global Styling for Consistency
+
+Make sure your global CSS or Tailwind configuration supports these styles and adjust as necessary.
+
+### Complete Implementation
+
+The final code provides a visually appealing, centered, and appropriately sized detailed history page, styled with Tailwind CSS and using Chart.js for the chart.
+
+### Optional: Custom CSS for Further Customization
+
+If you need further customization, you can create a custom CSS file and import it into your component. For example:
+
+```css
+/* styles.css */
+.chart-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 ```
 
-### Step 4: Adjust Styling to Match the Provided Image
+And import it in your component:
 
-Ensure your components have Tailwind CSS classes for appropriate styling.
-
-Here are a few example styling updates:
-
-#### DetailedView Component
 ```jsx
-// DetailedView.jsx (styles updated)
-import React from 'react';
-import { Link } from 'react-router-dom';
+import './styles.css';
 
-const DetailedView = ({ data, onClose }) => {
-  return (
-    <div className="fixed inset-0 bg-white p-6 m-4 rounded-lg shadow-lg overflow-y-auto max-w-xl mx-auto">
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 bg-black text-white rounded-full w-8 h-8 flex items-center justify-center focus:outline-none"
-      >
-        &times;
-      </button>
-      <h2 className="text-xl font-bold mb-4">{data.name}</h2>
-      <p className="text-gray-600 mb-6">{data.description}</p>
-      {/* Include other details here */}
-      <Link
-        to={`/details/${data.name}`}
-        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded inline-block"
-      >
-        View More Details
-      </Link>
-    </div>
-  );
-};
-
-export default DetailedView;
+// Use className="chart-container" in your chart div
 ```
 
-### Final Integration
-
-Ensure all components and styles are properly integrated and adjust as needed for a seamless user experience. This setup now allows the user to click a link in the detailed view, which redirects them to a new page displaying detailed history and other information, all styled appropriately.
+This approach ensures the detailed history page is well-styled, centered, and user-friendly.

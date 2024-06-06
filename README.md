@@ -1,156 +1,114 @@
-To implement a dark theme across your project using Redux, you can create a Redux slice that manages the theme state. This slice will include actions to toggle between light and dark themes and selectors to access the current theme state.
+import * as React from "react";
+import { IoMdArrowDown, IoMdArrowUp } from "react-icons/io";
+import { GiHamburgerMenu } from "react-icons/gi";
+import { ImCross } from "react-icons/im";
+import { MdDarkMode, MdLightMode } from "react-icons/md";
+import { Link } from "react-router-dom";
+import { FaChevronRight } from 'react-icons/fa';
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/user/userSlice";
+import { toggleTheme, selectIsDarkMode } from '../redux/slices/themeSlice';
 
-### Step 1: Install Redux Toolkit and React-Redux
-If you haven't already, install Redux Toolkit and React-Redux:
-```bash
-npm install @reduxjs/toolkit react-redux
-```
+export const Navbar = () => {
+    const [cross, setCross] = React.useState(false);
+    const [username, setUsername] = React.useState("Aniket");
+    const { isAuthenticated, user } = useSelector((state) => state.auth);
+    const isDarkMode = useSelector(selectIsDarkMode);
+    const dispatch = useDispatch();
+    const [profile, setProfile] = React.useState(false);
 
-### Step 2: Create the Theme Slice
+    const handleDark = () => {
+        dispatch(toggleTheme());
+    };
 
-Create a file called `themeSlice.js` in your Redux slices directory:
+    const handleCross = () => {
+        setCross((prev) => !prev);
+    };
 
-```javascript
-// src/slices/themeSlice.js
-import { createSlice } from '@reduxjs/toolkit';
+    const handleProfile = () => {
+        setProfile((prev) => !prev);
+    };
 
-const initialState = {
-  isDarkMode: false,
+    const handleLogout = async () => {
+        try {
+            const res = await fetch('http://10.64.17.55:8000/auth/logout', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'accessToken': sessionStorage.getItem('accessToken')
+                }
+            });
+
+            if (res.status === 200) {
+                sessionStorage.removeItem('accessToken');
+                sessionStorage.removeItem('refreshToken');
+                sessionStorage.removeItem('user');
+                dispatch(logout());
+            }
+        } catch (error) {
+            alert("Error while logging out");
+            console.log(error);
+        }
+    };
+
+    return (
+        <>
+            {/* mobile view */}
+            <nav className='md:hidden flex justify-around items-center text-white bg-[#d71e28] z-50 h-16 sticky top-0 border-b-4 border-yellow-300'>
+                {<Link className="right text-3xl z-50">{cross ? '' : 'WELLS FARGO'}</Link>}
+
+                {!cross &&
+                    <button className="cursor-pointer z-50" onClick={handleCross}>
+                        <GiHamburgerMenu size={30} />
+                    </button>
+                }
+
+                {cross &&
+                    <>
+                        <ul className='flex flex-col items-center absolute top-0 right-0 rounded-md h-[730px] text-black shadow-md shadow-gray-400 bg-white w-96 justify-start space-y-3 text-3xl z-30'>
+                            <div className="cursor-pointer z-50 transition ease-in-out delay-700 flex flex-row items-center justify-around gap-x-2 w-80 h-16 mb-5">
+                                {cross &&
+                                    <div className="flex justify-evenly gap-x-5 items-center text-[#141414] p-2">
+                                        <h1 className="text-4xl">{username}</h1>
+                                        <button className="flex flex-wrap gap-x-1" onClick={handleDark}>
+                                            {isDarkMode ? <MdDarkMode size={32} className="mt-1" /> : <MdLightMode size={32} className="mt-1" />}
+                                        </button>
+                                        <div onClick={handleCross} className={"border p-1 border-black rounded-full mt-2" + (cross ? ' text-[#141414]' : ' text-white')}>
+                                            <ImCross size={22} className="-p-1" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <Link to="/" className='flex flex-row space-x-2 hover:scale-105 duration-200 cursor-pointer items-center justify-center' onClick={() => setCross(false)}>
+                                <FaChevronRight size={25} /> <div>Home</div>
+                            </Link>
+                            <Link to="/portfolio" className='flex flex-row space-x-2 items-center justify-center hover:scale-105 duration-200 cursor-pointer' onClick={() => setCross(false)}>
+                                <FaChevronRight size={25} /> <div>Portfolio</div>
+                            </Link>
+                            {isAuthenticated ? <div onClick={handleLogout}>Logout</div> :
+                                <Link to="/signin" className='flex flex-row space-x-2 items-center justify-center hover:scale-105 duration-200 cursor-pointer' onClick={() => setCross(false)}>
+                                    <FaChevronRight size={25} /> <div>SignIn</div>
+                                </Link>
+                            }
+                        </ul>
+                    </>
+                }
+            </nav>
+
+            {/* desktop view */}
+            <nav className="hidden md:flex flex-row justify-around flex-wrap gap-x-10 text-white bg-[#d71e28] h-16 items-center border-b-4 sticky top-0 border-yellow-300">
+                <Link className="right cursor-pointer" to={"/"}>
+                    <img className="h-3/4 w-3/4" src="path/to/your/logo.svg" alt="Wells Fargo" />
+                </Link>
+                <div className="left flex flex-row justify-evenly gap-8 cursor-pointer text-2xl font-semibold">
+                    <Link className="home hover:border-b-2" to={"/"}>Home</Link>
+                    <Link className="portfolio hover:border-b-2" to={"/portfolio"}>Portfolio</Link>
+                    {isAuthenticated ? <button className="" onClick={handleLogout}>Logout</button> : <Link to={'/signin'}>SignIn</Link>}
+                    <button className="mode" onClick={handleDark}>
+                        {isDarkMode ? <MdDarkMode size={30} /> : <MdLightMode size={30} />}
+                    </button>
+                </div>
+            </nav>
+        </>
+    );
 };
-
-const themeSlice = createSlice({
-  name: 'theme',
-  initialState,
-  reducers: {
-    toggleTheme(state) {
-      state.isDarkMode = !state.isDarkMode;
-    },
-    setDarkMode(state, action) {
-      state.isDarkMode = action.payload;
-    }
-  }
-});
-
-export const { toggleTheme, setDarkMode } = themeSlice.actions;
-
-export const selectIsDarkMode = (state) => state.theme.isDarkMode;
-
-export default themeSlice.reducer;
-```
-
-### Step 3: Add the Theme Slice to the Store
-
-Combine the theme slice with other slices in your Redux store:
-
-```javascript
-// src/store/store.js
-import { configureStore } from '@reduxjs/toolkit';
-import themeReducer from '../slices/themeSlice';
-import authReducer from '../slices/authSlice'; // Example for another slice
-
-const store = configureStore({
-  reducer: {
-    theme: themeReducer,
-    auth: authReducer,
-    // Add other reducers here
-  },
-});
-
-export default store;
-```
-
-### Step 4: Provide the Redux Store to Your App
-
-Wrap your application with the Redux Provider to make the store available to all components:
-
-```javascript
-// src/index.js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import store from './store/store';
-import App from './App';
-
-ReactDOM.render(
-  <Provider store={store}>
-    <App />
-  </Provider>,
-  document.getElementById('root')
-);
-```
-
-### Step 5: Use the Theme State in Your Components
-
-Create a component to toggle the theme and apply the theme state across your application. You can use a combination of CSS classes and conditional rendering to apply the dark or light theme.
-
-```javascript
-// src/components/ThemeToggle.js
-import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleTheme, selectIsDarkMode } from '../slices/themeSlice';
-
-const ThemeToggle = () => {
-  const dispatch = useDispatch();
-  const isDarkMode = useSelector(selectIsDarkMode);
-
-  const handleToggle = () => {
-    dispatch(toggleTheme());
-  };
-
-  return (
-    <button onClick={handleToggle}>
-      Switch to {isDarkMode ? 'Light' : 'Dark'} Mode
-    </button>
-  );
-};
-
-export default ThemeToggle;
-```
-
-### Step 6: Apply the Theme Styles
-
-Use the theme state to conditionally apply styles in your application. Here's an example of how you might conditionally apply a dark theme in your main App component:
-
-```javascript
-// src/App.js
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectIsDarkMode } from './slices/themeSlice';
-import ThemeToggle from './components/ThemeToggle';
-import './App.css'; // Import your CSS file
-
-function App() {
-  const isDarkMode = useSelector(selectIsDarkMode);
-
-  return (
-    <div className={isDarkMode ? 'app dark-mode' : 'app'}>
-      <ThemeToggle />
-      <h1>Welcome to the Themed Application</h1>
-      {/* Your other components */}
-    </div>
-  );
-}
-
-export default App;
-```
-
-### Step 7: Define the CSS for Dark and Light Themes
-
-Add CSS rules for the dark and light themes in your CSS file:
-
-```css
-/* src/App.css */
-.app {
-  background-color: white;
-  color: black;
-}
-
-.dark-mode {
-  background-color: #333;
-  color: white;
-}
-```
-
-### Summary
-
-With these steps, you've created a Redux slice to manage the theme state and applied the theme across your application. The `ThemeToggle` component allows users to switch between light and dark modes, and the app dynamically updates its styles based on the current theme state.

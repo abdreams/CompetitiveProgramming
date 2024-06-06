@@ -1,12 +1,12 @@
-To use real data and route it correctly, we need to remove the sample data and fetch real data based on the portfolio id. Here’s how you can refactor the `PortfolioDetail` component to achieve this:
+To resolve the errors in your component, let's make the following adjustments:
 
-1. **Remove Sample Data**: Eliminate the hardcoded sample data.
-2. **Fetch Real Data**: Use the `useEffect` hook to fetch data from the API based on the `id` from the URL.
-3. **Pass Real Data**: Pass the fetched data to the `ChartDisplay` and `PortfolioDiversity` components.
+1. **Correctly Manage Fetch Data**: Ensure the API fetch call correctly retrieves data.
+2. **Handle Array vs Object Data Structure**: Ensure that data access aligns with the fetched data structure.
+3. **Ensure Use of `useEffect` Dependency Array**: Include the `id` in the dependency array of `useEffect`.
 
-Here is the complete refactored `PortfolioDetail.js`:
+### Updated `PortfolioDetail.js`
 
-### `PortfolioDetail.js`
+Here is the revised code:
 
 ```javascript
 import React, { useEffect, useState } from 'react';
@@ -23,20 +23,28 @@ function PortfolioDetail() {
 
   useEffect(() => {
     const getData = async () => {
-      const res = await fetch(`http://10.64.17.55:8000/portfolio/${id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'accesstoken': sessionStorage.getItem('accessToken')
-        },
-      });
-      const data = await res.json();
-      setPortfolio(data);
+      try {
+        const res = await fetch(`http://10.64.17.55:8000/portfolio/get/${id}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'accesstoken': sessionStorage.getItem('accessToken')
+          },
+        });
+        const data = await res.json();
+        setPortfolio(data);
+      } catch (error) {
+        console.error("Error fetching the portfolio data", error);
+      }
     };
     getData();
-  }, [id]);
+  }, [id]); // Include 'id' in dependency array
+
+  if (!portfolio) {
+    return <div>Loading...</div>;
+  }
 
   const handleRebalance = () => {
-    console.log(`Rebalancing portfolio ${portfolio?.name}`);
+    console.log(`Rebalancing portfolio ${portfolio.name}`);
     alert('Portfolio rebalanced successfully!');
   };
 
@@ -102,17 +110,16 @@ function PortfolioDetail() {
 export default PortfolioDetail;
 ```
 
-### Additional Adjustments
-Ensure that your `PortfolioDiversity` component and any other components that rely on the portfolio data handle the data structure correctly. For example, ensure that `portfolio.stocks`, `portfolio.allocation`, etc., are accessed correctly.
+### Key Adjustments
 
-### Ensure Consistent Data Access
-- Check all component data accesses (e.g., `portfolio?.stocks`, `portfolio?.allocation`) to handle cases where data might be undefined or null.
-- Make sure that all other related components (`ChartDisplay`, `PortfolioDiversity`, etc.) can handle the real data structure appropriately.
+1. **Fetch Data Handling**:
+   - Added error handling in the `getData` function using `try-catch`.
+   - Included a loading state (`return <div>Loading...</div>;`) to handle the period before data is fetched.
 
-### Ensure Correct Route Configuration
-Make sure your routes are correctly set up to use `PortfolioDetail` with a dynamic id. For instance:
-```javascript
-<Route path="/portfolio/:id" component={PortfolioDetail} />
-```
+2. **Data Access Adjustments**:
+   - Removed the assumption that the portfolio data is an array. Assumed the data is a single portfolio object directly.
 
-With these adjustments, your `PortfolioDetail` component should now fetch and use real data based on the provided portfolio ID.
+3. **`useEffect` Dependency**:
+   - Added `id` to the dependency array of `useEffect` to ensure it re-fetches data if the `id` changes.
+
+By making these adjustments, the component should properly fetch and display the portfolio data when clicking for a detailed view, ensuring it handles errors and varying states effectively.

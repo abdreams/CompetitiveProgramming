@@ -1,114 +1,155 @@
-import * as React from "react";
-import { IoMdArrowDown, IoMdArrowUp } from "react-icons/io";
-import { GiHamburgerMenu } from "react-icons/gi";
-import { ImCross } from "react-icons/im";
-import { MdDarkMode, MdLightMode } from "react-icons/md";
-import { Link } from "react-router-dom";
-import { FaChevronRight } from 'react-icons/fa';
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/slices/user/userSlice";
-import { toggleTheme, selectIsDarkMode } from '../redux/slices/themeSlice';
+### Portfolio Optimization Application - Frontend Design Document
 
-export const Navbar = () => {
-    const [cross, setCross] = React.useState(false);
-    const [username, setUsername] = React.useState("Aniket");
-    const { isAuthenticated, user } = useSelector((state) => state.auth);
-    const isDarkMode = useSelector(selectIsDarkMode);
-    const dispatch = useDispatch();
-    const [profile, setProfile] = React.useState(false);
+#### Overview
+This document outlines the design and structure of the frontend for the Portfolio Optimization Application. The application aims to provide users with an interactive and comprehensive platform for managing and optimizing their investment portfolios.
 
-    const handleDark = () => {
-        dispatch(toggleTheme());
-    };
+#### Technologies Used
+- **React**: JavaScript library for building user interfaces.
+- **Tailwind CSS**: Utility-first CSS framework for styling.
+- **React Router**: Library for routing in React applications.
+- **Chart.js**: JavaScript library for creating charts.
+- **React Table**: Library for creating tables in React.
+- **Redux**: State management library for JavaScript applications.
 
-    const handleCross = () => {
-        setCross((prev) => !prev);
-    };
+---
 
-    const handleProfile = () => {
-        setProfile((prev) => !prev);
-    };
+### Pages
 
-    const handleLogout = async () => {
-        try {
-            const res = await fetch('http://10.64.17.55:8000/auth/logout', {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'accessToken': sessionStorage.getItem('accessToken')
-                }
-            });
+#### 1. Home
+**Description**: The landing page of the application.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Stock Marquee
 
-            if (res.status === 200) {
-                sessionStorage.removeItem('accessToken');
-                sessionStorage.removeItem('refreshToken');
-                sessionStorage.removeItem('user');
-                dispatch(logout());
-            }
-        } catch (error) {
-            alert("Error while logging out");
-            console.log(error);
-        }
-    };
+#### 2. Markets and Sectors
+**Description**: Provides an overview of different market sectors and their performance.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Stock Marquee
+- Stocks
 
-    return (
-        <>
-            {/* mobile view */}
-            <nav className='md:hidden flex justify-around items-center text-white bg-[#d71e28] z-50 h-16 sticky top-0 border-b-4 border-yellow-300'>
-                {<Link className="right text-3xl z-50">{cross ? '' : 'WELLS FARGO'}</Link>}
+#### 3. News
+**Description**: Displays the latest news related to stocks and financial markets.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- News List
 
-                {!cross &&
-                    <button className="cursor-pointer z-50" onClick={handleCross}>
-                        <GiHamburgerMenu size={30} />
-                    </button>
-                }
+#### 4. Portfolio Dashboard
+**Description**: The main dashboard where users can view and manage their portfolios.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Portfolio Table
+- Allocation View
+- Portfolio Charts
+- Portfolio Diversity
 
-                {cross &&
-                    <>
-                        <ul className='flex flex-col items-center absolute top-0 right-0 rounded-md h-[730px] text-black shadow-md shadow-gray-400 bg-white w-96 justify-start space-y-3 text-3xl z-30'>
-                            <div className="cursor-pointer z-50 transition ease-in-out delay-700 flex flex-row items-center justify-around gap-x-2 w-80 h-16 mb-5">
-                                {cross &&
-                                    <div className="flex justify-evenly gap-x-5 items-center text-[#141414] p-2">
-                                        <h1 className="text-4xl">{username}</h1>
-                                        <button className="flex flex-wrap gap-x-1" onClick={handleDark}>
-                                            {isDarkMode ? <MdDarkMode size={32} className="mt-1" /> : <MdLightMode size={32} className="mt-1" />}
-                                        </button>
-                                        <div onClick={handleCross} className={"border p-1 border-black rounded-full mt-2" + (cross ? ' text-[#141414]' : ' text-white')}>
-                                            <ImCross size={22} className="-p-1" />
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+#### 5. Sign In
+**Description**: Page for users to log in to their accounts.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Modals (for error messages, etc.)
 
-                            <Link to="/" className='flex flex-row space-x-2 hover:scale-105 duration-200 cursor-pointer items-center justify-center' onClick={() => setCross(false)}>
-                                <FaChevronRight size={25} /> <div>Home</div>
-                            </Link>
-                            <Link to="/portfolio" className='flex flex-row space-x-2 items-center justify-center hover:scale-105 duration-200 cursor-pointer' onClick={() => setCross(false)}>
-                                <FaChevronRight size={25} /> <div>Portfolio</div>
-                            </Link>
-                            {isAuthenticated ? <div onClick={handleLogout}>Logout</div> :
-                                <Link to="/signin" className='flex flex-row space-x-2 items-center justify-center hover:scale-105 duration-200 cursor-pointer' onClick={() => setCross(false)}>
-                                    <FaChevronRight size={25} /> <div>SignIn</div>
-                                </Link>
-                            }
-                        </ul>
-                    </>
-                }
-            </nav>
+#### 6. Sign Up
+**Description**: Page for new users to create an account.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Modals (for success messages, etc.)
 
-            {/* desktop view */}
-            <nav className="hidden md:flex flex-row justify-around flex-wrap gap-x-10 text-white bg-[#d71e28] h-16 items-center border-b-4 sticky top-0 border-yellow-300">
-                <Link className="right cursor-pointer" to={"/"}>
-                    <img className="h-3/4 w-3/4" src="path/to/your/logo.svg" alt="Wells Fargo" />
-                </Link>
-                <div className="left flex flex-row justify-evenly gap-8 cursor-pointer text-2xl font-semibold">
-                    <Link className="home hover:border-b-2" to={"/"}>Home</Link>
-                    <Link className="portfolio hover:border-b-2" to={"/portfolio"}>Portfolio</Link>
-                    {isAuthenticated ? <button className="" onClick={handleLogout}>Logout</button> : <Link to={'/signin'}>SignIn</Link>}
-                    <button className="mode" onClick={handleDark}>
-                        {isDarkMode ? <MdDarkMode size={30} /> : <MdLightMode size={30} />}
-                    </button>
-                </div>
-            </nav>
-        </>
-    );
-};
+#### 7. Admin Dashboard
+**Description**: Dashboard for administrators to manage users and application settings.
+**Components**: 
+- Navbar
+- Header
+- Footer
+- Usercard
+- Settings
+- Loaders
+
+---
+
+### Components
+
+#### 1. Navbar
+**Description**: Navigation bar that allows users to navigate between different pages.
+
+#### 2. Header
+**Description**: Header section for each page, typically includes the page title and breadcrumbs.
+
+#### 3. Footer
+**Description**: Footer section for each page, includes copyright information and links.
+
+#### 4. Stock Marquee
+**Description**: A scrolling ticker of stock prices and key market information.
+
+#### 5. Modals
+**Description**: Pop-up dialogs used for alerts, confirmations, and forms.
+
+#### 6. Usercard
+**Description**: Card component to display user information.
+
+#### 7. News List
+**Description**: List component to display news articles.
+
+#### 8. Portfolio Table
+**Description**: Table component to display portfolio details using React Table.
+
+#### 9. Allocation View
+**Description**: Component to display asset allocation within the portfolio.
+
+#### 10. Portfolio Charts
+**Description**: Charts to visualize portfolio performance and metrics using Chart.js.
+
+#### 11. Portfolio Diversity
+**Description**: Component to show the diversity of the portfolio.
+
+#### 12. Loaders
+**Description**: Loading indicators to show while data is being fetched.
+
+#### 13. Stocks
+**Description**: Component to display stock information and performance metrics.
+
+#### 14. Settings
+**Description**: Component for users to manage their account settings.
+
+---
+
+### Routing
+Using React Router, the application will have the following routes:
+- `/` -> Home
+- `/markets` -> Markets and Sectors
+- `/news` -> News
+- `/dashboard` -> Portfolio Dashboard
+- `/signin` -> Sign In
+- `/signup` -> Sign Up
+- `/admin` -> Admin Dashboard
+
+---
+
+### State Management
+Using Redux for state management, the application will manage global states such as user authentication status, portfolio data, and market information. Key slices of state might include:
+- **User**: Authentication and user details.
+- **Portfolio**: Data related to the user's portfolio.
+- **Market**: Market and stock information.
+- **News**: Latest financial news.
+
+---
+
+### Styling
+Using Tailwind CSS for styling, the application will follow a utility-first approach for rapid and maintainable styling. Custom styles can be added as needed, but leveraging Tailwind's predefined classes will be prioritized.
+
+---
+
+### Conclusion
+This design document provides a structured approach to developing the frontend of the Portfolio Optimization Application. By adhering to this design, the development process can be more organized, leading to a more efficient and effective build.

@@ -1,26 +1,20 @@
-To add a chatbot to your application using the React Chatbot Kit, you can follow the steps below. I'll provide you with the necessary code to set up a simple chatbot with some questions and responses.
+To implement a more sophisticated chatbot with predefined messages appearing as clickable options (quick replies) and the ability to route users to specific parts of your application, we need to extend our setup with more features.
 
-### Step 1: Install React Chatbot Kit
+### Step 1: Update Chatbot Configuration
 
-First, you need to install the React Chatbot Kit. Run the following command in your project directory:
-
-```bash
-npm install react-chatbot-kit
-```
-
-### Step 2: Create Chatbot Configuration
-
-Create a configuration file for your chatbot. This file will define the structure and behavior of your chatbot.
+We'll include a new widget for quick replies in our chatbot configuration.
 
 #### chatbotConfig.js
 
 ```javascript
 import { createChatBotMessage } from 'react-chatbot-kit';
-import React from 'react';
+import QuickReply from './widgets/QuickReply';
 
 const config = {
   botName: 'StockBot',
-  initialMessages: [createChatBotMessage(`Hi! I'm StockBot. How can I help you today?`)],
+  initialMessages: [createChatBotMessage('Hi! I\'m StockBot. How can I help you today?', {
+    widget: 'quickReplies',
+  })],
   customStyles: {
     botMessageBox: {
       backgroundColor: '#376B7E',
@@ -30,16 +24,107 @@ const config = {
     },
   },
   widgets: [
-    // Add widgets here if you want to extend functionality
+    {
+      widgetName: 'quickReplies',
+      widgetFunc: (props) => <QuickReply {...props} />,
+      mapStateToProps: ["messages"],
+    },
   ],
 };
 
 export default config;
 ```
 
-### Step 3: Create Message Parser
+### Step 2: Create Quick Reply Widget
 
-Create a message parser to define how the chatbot should interpret user inputs.
+Create a widget for quick replies that allows users to select predefined messages.
+
+#### QuickReply.js
+
+```javascript
+import React from 'react';
+
+const QuickReply = ({ actionProvider }) => {
+  const options = [
+    { text: 'Create Portfolio', handler: actionProvider.handleCreatePortfolio },
+    { text: 'Get Stock News', handler: actionProvider.handleStockNews },
+    { text: 'Hello', handler: actionProvider.greet },
+  ];
+
+  return (
+    <div className="quick-replies">
+      {options.map((option, index) => (
+        <button key={index} onClick={option.handler} className="quick-reply-button">
+          {option.text}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+export default QuickReply;
+```
+
+### Step 3: Update Action Provider
+
+Update the action provider to handle routing users to different parts of your application.
+
+#### ActionProvider.js
+
+```javascript
+import { createChatBotMessage } from 'react-chatbot-kit';
+import { useHistory } from 'react-router-dom';
+
+class ActionProvider {
+  constructor(createChatBotMessage, setStateFunc, createClientMessage) {
+    this.createChatBotMessage = createChatBotMessage;
+    this.setState = setStateFunc;
+    this.createClientMessage = createClientMessage;
+    this.history = useHistory(); // Use history for navigation
+  }
+
+  greet = () => {
+    const greetingMessage = this.createChatBotMessage('Hello! How can I assist you today?', {
+      widget: 'quickReplies',
+    });
+    this.updateChatbotState(greetingMessage);
+  };
+
+  handleStockNews = () => {
+    const newsMessage = this.createChatBotMessage('Here is the latest news about stocks...');
+    // Add more details or logic to fetch and display news
+    this.updateChatbotState(newsMessage);
+  };
+
+  handleCreatePortfolio = () => {
+    const portfolioMessage = this.createChatBotMessage('I can help you create a portfolio. Redirecting you now...');
+    this.updateChatbotState(portfolioMessage);
+    setTimeout(() => {
+      this.history.push('/create-portfolio'); // Route to the create portfolio page
+    }, 1000); // Add a slight delay before redirecting
+  };
+
+  defaultResponse = () => {
+    const defaultMessage = this.createChatBotMessage('Sorry, I did not understand that. Could you please rephrase?', {
+      widget: 'quickReplies',
+    });
+    this.updateChatbotState(defaultMessage);
+  };
+
+  updateChatbotState = (message) => {
+    this.setState(prevState => ({
+      ...prevState,
+      messages: [...prevState.messages, message],
+    }));
+  };
+}
+
+export default ActionProvider;
+```
+
+### Step 4: Update Message Parser
+
+Update the message parser to recognize commands that will trigger different handlers in the action provider.
 
 #### MessageParser.js
 
@@ -49,139 +134,91 @@ class MessageParser {
     this.actionProvider = actionProvider;
   }
 
-  parse(message) {
+  parse = (message) => {
     const lowerCaseMessage = message.toLowerCase();
 
     if (lowerCaseMessage.includes('hello')) {
       this.actionProvider.greet();
     } else if (lowerCaseMessage.includes('stock news')) {
       this.actionProvider.handleStockNews();
+    } else if (lowerCaseMessage.includes('create portfolio')) {
+      this.actionProvider.handleCreatePortfolio();
     } else {
       this.actionProvider.defaultResponse();
     }
-  }
+  };
 }
 
 export default MessageParser;
 ```
 
-### Step 4: Create Action Provider
+### Step 5: Style the Quick Replies (Optional)
 
-Create an action provider to define how the chatbot should respond to different user inputs.
+Add some CSS to style the quick replies.
 
-#### ActionProvider.js
+#### App.css
 
-```javascript
-import { createChatBotMessage } from 'react-chatbot-kit';
-
-class ActionProvider {
-  constructor(createChatBotMessage, setStateFunc, createClientMessage) {
-    this.createChatBotMessage = createChatBotMessage;
-    this.setState = setStateFunc;
-    this.createClientMessage = createClientMessage;
-  }
-
-  greet() {
-    const greetingMessage = this.createChatBotMessage('Hello! How can I assist you today?');
-    this.updateChatbotState(greetingMessage);
-  }
-
-  handleStockNews() {
-    const newsMessage = this.createChatBotMessage('Here is the latest news about stocks...');
-    // Add more details or logic to fetch and display news
-    this.updateChatbotState(newsMessage);
-  }
-
-  defaultResponse() {
-    const defaultMessage = this.createChatBotMessage('Sorry, I did not understand that. Could you please rephrase?');
-    this.updateChatbotState(defaultMessage);
-  }
-
-  updateChatbotState(message) {
-    this.setState(prevState => ({
-      ...prevState,
-      messages: [...prevState.messages, message],
-    }));
-  }
+```css
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
-export default ActionProvider;
+.quick-reply-button {
+  background-color: #376B7E;
+  color: white;
+  padding: 8px 12px;
+  margin: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.quick-reply-button:hover {
+  background-color: #2b5261;
+}
 ```
 
-### Step 5: Create Chatbot Component
+### Step 6: Integrate with Your Application
 
-Create a React component to render the chatbot.
-
-#### ChatbotComponent.js
-
-```javascript
-import React from 'react';
-import { Chatbot } from 'react-chatbot-kit';
-import 'react-chatbot-kit/build/main.css';
-import config from './chatbotConfig';
-import MessageParser from './MessageParser';
-import ActionProvider from './ActionProvider';
-
-const ChatbotComponent = () => {
-  return (
-    <div className="chatbot-container">
-      <Chatbot config={config} messageParser={MessageParser} actionProvider={ActionProvider} />
-    </div>
-  );
-};
-
-export default ChatbotComponent;
-```
-
-### Step 6: Add Chatbot to Your Application
-
-Integrate the chatbot into your main application component.
+Make sure to integrate the `ChatbotComponent` into your main application.
 
 #### App.js
 
 ```javascript
 import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import NewsPage from './NewsPage';
+import CreatePortfolioPage from './CreatePortfolioPage'; // Create this page as needed
 import ChatbotComponent from './ChatbotComponent';
+import './App.css';
 
 const App = () => {
   return (
-    <div>
-      <NewsPage />
-      <ChatbotComponent />
-    </div>
+    <Router>
+      <div>
+        <Switch>
+          <Route path="/create-portfolio" component={CreatePortfolioPage} />
+          <Route path="/news" component={NewsPage} />
+          {/* Add other routes as needed */}
+        </Switch>
+        <ChatbotComponent />
+      </div>
+    </Router>
   );
 };
 
 export default App;
 ```
 
-### Styling (Optional)
-
-You can add some custom styles to position the chatbot in your application.
-
-#### App.css
-
-```css
-.chatbot-container {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-```
-
-Make sure to import the CSS file in your `App.js`:
-
-```javascript
-import './App.css';
-```
-
 ### Summary
 
-1. Install `react-chatbot-kit`.
-2. Create configuration, message parser, and action provider files.
-3. Create a `ChatbotComponent` to render the chatbot.
-4. Integrate the chatbot into your main application.
+1. Updated the chatbot configuration to include quick replies.
+2. Created a QuickReply widget for predefined messages.
+3. Enhanced the action provider to handle routing and additional actions.
+4. Updated the message parser to recognize new commands.
+5. Styled the quick replies for better user experience.
+6. Integrated the chatbot with your main application.
 
-With this setup, you have a basic chatbot that can respond to simple queries like "hello" and "stock news." You can extend the action provider and message parser to handle more complex interactions and integrate with other parts of your application.
+This setup provides a more interactive chatbot experience with quick reply options and the ability to route users to different parts of your application based on their input.

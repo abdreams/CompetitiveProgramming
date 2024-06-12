@@ -1,128 +1,187 @@
-Here's a simple implementation of an Admin News Page where the admin can enter stock symbols, choose the sentiment of the news, and provide a description. This implementation includes form handling and a basic layout using React.
+To add a chatbot to your application using the React Chatbot Kit, you can follow the steps below. I'll provide you with the necessary code to set up a simple chatbot with some questions and responses.
 
-### Admin News Page
+### Step 1: Install React Chatbot Kit
 
-#### NewsPage.js
+First, you need to install the React Chatbot Kit. Run the following command in your project directory:
+
+```bash
+npm install react-chatbot-kit
+```
+
+### Step 2: Create Chatbot Configuration
+
+Create a configuration file for your chatbot. This file will define the structure and behavior of your chatbot.
+
+#### chatbotConfig.js
 
 ```javascript
-import React, { useState } from 'react';
+import { createChatBotMessage } from 'react-chatbot-kit';
+import React from 'react';
 
-const NewsPage = () => {
-  const [news, setNews] = useState([]);
-  const [stockSymbol, setStockSymbol] = useState('');
-  const [newsSentiment, setNewsSentiment] = useState('neutral');
-  const [description, setDescription] = useState('');
+const config = {
+  botName: 'StockBot',
+  initialMessages: [createChatBotMessage(`Hi! I'm StockBot. How can I help you today?`)],
+  customStyles: {
+    botMessageBox: {
+      backgroundColor: '#376B7E',
+    },
+    chatButton: {
+      backgroundColor: '#376B7E',
+    },
+  },
+  widgets: [
+    // Add widgets here if you want to extend functionality
+  ],
+};
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+export default config;
+```
 
-    const newNews = {
-      stockSymbol,
-      newsSentiment,
-      description,
-    };
+### Step 3: Create Message Parser
 
-    // Simulate sending to the backend
-    setNews([...news, newNews]);
-    setStockSymbol('');
-    setNewsSentiment('neutral');
-    setDescription('');
-  };
+Create a message parser to define how the chatbot should interpret user inputs.
 
+#### MessageParser.js
+
+```javascript
+class MessageParser {
+  constructor(actionProvider) {
+    this.actionProvider = actionProvider;
+  }
+
+  parse(message) {
+    const lowerCaseMessage = message.toLowerCase();
+
+    if (lowerCaseMessage.includes('hello')) {
+      this.actionProvider.greet();
+    } else if (lowerCaseMessage.includes('stock news')) {
+      this.actionProvider.handleStockNews();
+    } else {
+      this.actionProvider.defaultResponse();
+    }
+  }
+}
+
+export default MessageParser;
+```
+
+### Step 4: Create Action Provider
+
+Create an action provider to define how the chatbot should respond to different user inputs.
+
+#### ActionProvider.js
+
+```javascript
+import { createChatBotMessage } from 'react-chatbot-kit';
+
+class ActionProvider {
+  constructor(createChatBotMessage, setStateFunc, createClientMessage) {
+    this.createChatBotMessage = createChatBotMessage;
+    this.setState = setStateFunc;
+    this.createClientMessage = createClientMessage;
+  }
+
+  greet() {
+    const greetingMessage = this.createChatBotMessage('Hello! How can I assist you today?');
+    this.updateChatbotState(greetingMessage);
+  }
+
+  handleStockNews() {
+    const newsMessage = this.createChatBotMessage('Here is the latest news about stocks...');
+    // Add more details or logic to fetch and display news
+    this.updateChatbotState(newsMessage);
+  }
+
+  defaultResponse() {
+    const defaultMessage = this.createChatBotMessage('Sorry, I did not understand that. Could you please rephrase?');
+    this.updateChatbotState(defaultMessage);
+  }
+
+  updateChatbotState(message) {
+    this.setState(prevState => ({
+      ...prevState,
+      messages: [...prevState.messages, message],
+    }));
+  }
+}
+
+export default ActionProvider;
+```
+
+### Step 5: Create Chatbot Component
+
+Create a React component to render the chatbot.
+
+#### ChatbotComponent.js
+
+```javascript
+import React from 'react';
+import { Chatbot } from 'react-chatbot-kit';
+import 'react-chatbot-kit/build/main.css';
+import config from './chatbotConfig';
+import MessageParser from './MessageParser';
+import ActionProvider from './ActionProvider';
+
+const ChatbotComponent = () => {
   return (
-    <div className="container mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">Add News</h2>
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="mb-4">
-          <label className="block text-gray-700">Stock Symbol</label>
-          <input
-            type="text"
-            value={stockSymbol}
-            onChange={(e) => setStockSymbol(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg"
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">News Sentiment</label>
-          <select
-            value={newsSentiment}
-            onChange={(e) => setNewsSentiment(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg"
-          >
-            <option value="good">Good</option>
-            <option value="bad">Bad</option>
-            <option value="neutral">Neutral</option>
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg"
-            required
-          ></textarea>
-        </div>
-        <div className="flex justify-end">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-            Add News
-          </button>
-        </div>
-      </form>
-
-      <h3 className="text-lg font-semibold mb-4">News List</h3>
-      <ul>
-        {news.map((n, index) => (
-          <li key={index} className="mb-4 p-4 border rounded-lg">
-            <p><strong>Stock Symbol:</strong> {n.stockSymbol}</p>
-            <p><strong>Sentiment:</strong> {n.newsSentiment}</p>
-            <p><strong>Description:</strong> {n.description}</p>
-          </li>
-        ))}
-      </ul>
+    <div className="chatbot-container">
+      <Chatbot config={config} messageParser={MessageParser} actionProvider={ActionProvider} />
     </div>
   );
 };
 
-export default NewsPage;
+export default ChatbotComponent;
 ```
 
-### Explanation:
-1. **State Management**: The component uses React's `useState` to manage form inputs and news entries.
-2. **Form Handling**: On form submission, the news entry is added to the `news` array, and the form inputs are cleared.
-3. **News List**: The added news entries are displayed below the form.
+### Step 6: Add Chatbot to Your Application
 
-### Styling:
-This example uses Tailwind CSS for styling. If you are not using Tailwind, replace the class names with your preferred CSS classes.
+Integrate the chatbot into your main application component.
 
-### Backend Integration:
-Currently, the news entries are only stored locally in the state. To integrate with a backend, you would:
-1. Send a POST request to a backend endpoint with the news data in the `handleSubmit` function.
-2. Fetch the news entries from the backend when the component mounts, possibly using `useEffect`.
-
-Here's a quick example of sending the news entry to a backend:
+#### App.js
 
 ```javascript
-const handleSubmit = async (e) => {
-  e.preventDefault();
+import React from 'react';
+import NewsPage from './NewsPage';
+import ChatbotComponent from './ChatbotComponent';
 
-  const newNews = {
-    stockSymbol,
-    newsSentiment,
-    description,
-  };
+const App = () => {
+  return (
+    <div>
+      <NewsPage />
+      <ChatbotComponent />
+    </div>
+  );
+};
 
-  // Simulate sending to the backend
-  try {
-    const response = await fetch('https://dummy-url-to-backend.com/news', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newNews),
-    });
+export default App;
+```
 
-    if (response.ok) {
-      const addedNews = await response.json();
-      setNews
+### Styling (Optional)
+
+You can add some custom styles to position the chatbot in your application.
+
+#### App.css
+
+```css
+.chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+```
+
+Make sure to import the CSS file in your `App.js`:
+
+```javascript
+import './App.css';
+```
+
+### Summary
+
+1. Install `react-chatbot-kit`.
+2. Create configuration, message parser, and action provider files.
+3. Create a `ChatbotComponent` to render the chatbot.
+4. Integrate the chatbot into your main application.
+
+With this setup, you have a basic chatbot that can respond to simple queries like "hello" and "stock news." You can extend the action provider and message parser to handle more complex interactions and integrate with other parts of your application.

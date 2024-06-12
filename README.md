@@ -1,113 +1,92 @@
-Here is a React component for the modal that will display the required portfolio details and buttons:
+To display a browser alert one minute before logging out due to inactivity, you can modify the `useIdleTimeout` hook to use the `alert` function directly. Here is the updated `useIdleTimeout` hook:
 
-```jsx
+### `useIdleTimeout.js`
+
+```javascript
+import { useEffect, useRef } from 'react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../redux/slices/user/userSlice';
+
+const useIdleTimeout = (timeout = 900000) => { // default 15 minutes
+  const dispatch = useDispatch();
+  const warningTime = 60000; // 1 minute
+  const timerRef = useRef(null);
+  const warningTimerRef = useRef(null);
+
+  useEffect(() => {
+    const resetTimer = () => {
+      clearTimeout(timerRef.current);
+      clearTimeout(warningTimerRef.current);
+
+      warningTimerRef.current = setTimeout(() => {
+        alert('You will be logged out due to inactivity');
+      }, timeout - warningTime);
+
+      timerRef.current = setTimeout(() => {
+        dispatch(logout());
+      }, timeout);
+    };
+
+    const handleActivity = () => {
+      resetTimer();
+    };
+
+    resetTimer();
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keypress', handleActivity);
+
+    return () => {
+      clearTimeout(timerRef.current);
+      clearTimeout(warningTimerRef.current);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keypress', handleActivity);
+    };
+  }, [dispatch, timeout, warningTime]);
+
+  return null;
+};
+
+export default useIdleTimeout;
+```
+
+### Integrate into Your Main App Component
+
+Use the `useIdleTimeout` hook in your main application component to initialize the idle timeout logic.
+
+### `App.js`
+
+```javascript
 import React from 'react';
-import { createPortal } from 'react-dom';
+import { Provider } from 'react-redux';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import store from './store'; // Ensure this path is correct
+import ChatbotComponent from './ChatbotComponent'; // Ensure this path is correct
+import NewsPage from './NewsPage'; // Ensure this path is correct
+import CreatePortfolioPage from './CreatePortfolioPage'; // Ensure this path is correct
+import useIdleTimeout from './useIdleTimeout'; // Ensure this path is correct
+import './App.css';
 
-const PortfolioModal = ({ isOpen, onClose, profitLoss, capital, worth, allocation, diversity, onAccept, onReject }) => {
-    if (!isOpen) return null;
+const App = () => {
+  useIdleTimeout();
 
-    return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
-                <div className="flex flex-row justify-between">
-                    <div className="w-1/2 pr-4">
-                        <h2 className="text-2xl font-bold mb-4">Portfolio Details</h2>
-                        <p><strong>Profit/Loss:</strong> {profitLoss}</p>
-                        <p><strong>Capital:</strong> {capital}</p>
-                        <p><strong>Worth:</strong> {worth}</p>
-                        <p><strong>Allocation:</strong> {allocation}</p>
-                    </div>
-                    <div className="w-1/2 pl-4">
-                        <h2 className="text-2xl font-bold mb-4">Portfolio Diversity</h2>
-                        <p>{diversity}</p>
-                    </div>
-                </div>
-                <div className="flex justify-end mt-6">
-                    <button
-                        onClick={onReject}
-                        className="mr-4 py-2 px-4 bg-red-500 text-white rounded"
-                    >
-                        Reject
-                    </button>
-                    <button
-                        onClick={onAccept}
-                        className="py-2 px-4 bg-green-500 text-white rounded"
-                    >
-                        Accept
-                    </button>
-                </div>
-            </div>
-        </div>,
-        document.body
-    );
-};
-
-export default PortfolioModal;
-```
-
-### Usage in the Parent Component
-
-In your parent component (e.g., the component where the "Rebalance Portfolio" button is located), you can use the `PortfolioModal` component as follows:
-
-```jsx
-import React, { useState } from 'react';
-import PortfolioModal from './PortfolioModal'; // Adjust the import path accordingly
-
-const ParentComponent = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const handleRebalanceClick = () => {
-        setIsModalOpen(true);
-    };
-
-    const handleModalClose = () => {
-        setIsModalOpen(false);
-    };
-
-    const handleAccept = () => {
-        // Handle accept logic here
-        setIsModalOpen(false);
-    };
-
-    const handleReject = () => {
-        // Handle reject logic here
-        setIsModalOpen(false);
-    };
-
-    return (
+  return (
+    <Provider store={store}>
+      <Router>
         <div>
-            <button onClick={handleRebalanceClick} className="py-2 px-4 bg-blue-500 text-white rounded">
-                Rebalance Portfolio
-            </button>
-
-            <PortfolioModal
-                isOpen={isModalOpen}
-                onClose={handleModalClose}
-                profitLoss="$500"
-                capital="$10,000"
-                worth="$10,500"
-                allocation="60% Stocks, 30% Bonds, 10% Cash"
-                diversity="Diverse across multiple sectors"
-                onAccept={handleAccept}
-                onReject={handleReject}
-            />
+          <Switch>
+            <Route path="/create-portfolio" component={CreatePortfolioPage} />
+            <Route path="/news" component={NewsPage} />
+            {/* Add other routes as needed */}
+          </Switch>
+          <ChatbotComponent />
         </div>
-    );
+      </Router>
+    </Provider>
+  );
 };
 
-export default ParentComponent;
+export default App;
 ```
 
-### Explanation
-
-1. **Modal Component (`PortfolioModal`)**:
-    - This component is responsible for rendering the modal. It takes several props, including `isOpen` to control its visibility, `onClose` to handle closing the modal, and data for displaying portfolio details (`profitLoss`, `capital`, `worth`, `allocation`, `diversity`).
-    - It also takes `onAccept` and `onReject` props for handling accept and reject actions.
-
-2. **Parent Component**:
-    - Manages the state of the modal (`isModalOpen`).
-    - Contains the `handleRebalanceClick`, `handleModalClose`, `handleAccept`, and `handleReject` functions for handling modal interactions.
-    - Passes the necessary data and handlers to the `PortfolioModal` component.
-
-You can adjust the styles and content as needed to match your application's design and requirements.
+By adding `useIdleTimeout` directly into your `App` component, the idle timeout logic will be initialized when the application starts. The alert message will be displayed one minute before the user is logged out due to inactivity.

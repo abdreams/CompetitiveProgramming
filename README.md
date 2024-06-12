@@ -1,10 +1,8 @@
-It seems like there might be an issue with how the component is being imported or used in the `chatbotConfig.js`. Let's review the code and correct any possible mistakes. The syntax error could be due to the way the widget function is being used or how the imports are set up.
+It seems the syntax error may be due to the JSX syntax within the JavaScript file not being properly recognized. To resolve this, let's ensure everything is correctly imported and configured. Make sure you have the necessary dependencies installed, and that your project is properly set up to handle JSX.
 
-Here's a more comprehensive review and correction for your chatbot configuration:
+Here's the corrected and reviewed code for the chatbot configuration and widget:
 
 ### Step 1: Create the QuickReply Widget
-
-First, ensure that your `QuickReply.js` component is correctly defined:
 
 #### QuickReply.js
 
@@ -40,13 +38,15 @@ Ensure the chatbot configuration imports and uses the widget correctly.
 
 ```javascript
 import { createChatBotMessage } from 'react-chatbot-kit';
-import QuickReply from './widgets/QuickReply'; // Make sure the path is correct
+import QuickReply from './widgets/QuickReply'; // Ensure the path is correct
 
 const config = {
   botName: 'StockBot',
-  initialMessages: [createChatBotMessage('Hi! I\'m StockBot. How can I help you today?', {
-    widget: 'quickReplies',
-  })],
+  initialMessages: [
+    createChatBotMessage("Hi! I'm StockBot. How can I help you today?", {
+      widget: 'quickReplies',
+    }),
+  ],
   customStyles: {
     botMessageBox: {
       backgroundColor: '#376B7E',
@@ -59,7 +59,6 @@ const config = {
     {
       widgetName: 'quickReplies',
       widgetFunc: (props) => <QuickReply {...props} />,
-      mapStateToProps: ["messages"],
     },
   ],
 };
@@ -67,9 +66,7 @@ const config = {
 export default config;
 ```
 
-### Step 3: Verify ActionProvider and MessageParser
-
-Ensure the `ActionProvider` and `MessageParser` are set up correctly to handle the commands and navigation.
+### Step 3: Ensure ActionProvider and MessageParser are Correctly Set Up
 
 #### ActionProvider.js
 
@@ -112,7 +109,7 @@ class ActionProvider {
   };
 
   updateChatbotState = (message) => {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       ...prevState,
       messages: [...prevState.messages, message],
     }));
@@ -123,8 +120,6 @@ export default ActionProvider;
 ```
 
 ### Step 4: Verify MessageParser
-
-Ensure the message parser is correctly identifying and parsing messages.
 
 #### MessageParser.js
 
@@ -154,8 +149,6 @@ export default MessageParser;
 
 ### Step 5: Integrate the Chatbot into Your Application
 
-Make sure to integrate the chatbot component into your main application file.
-
 #### App.js
 
 ```javascript
@@ -184,11 +177,4 @@ const App = () => {
 export default App;
 ```
 
-### Summary
-
-1. Ensure the `QuickReply` component is correctly defined.
-2. Correctly configure the chatbot in `chatbotConfig.js`.
-3. Update the `ActionProvider` and `MessageParser` to handle user inputs and route them appropriately.
-4. Integrate the chatbot component into your application.
-
-With these changes, you should have a chatbot that provides predefined message options and can navigate users to different parts of your application based on their input.
+By following these steps, the syntax error should be resolved, and the chatbot should be properly integrated into your application.

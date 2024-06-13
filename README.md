@@ -1,92 +1,135 @@
-To display a browser alert one minute before logging out due to inactivity, you can modify the `useIdleTimeout` hook to use the `alert` function directly. Here is the updated `useIdleTimeout` hook:
+Sure, I can help with that. To render the `portfolio?.allocation` as a list instead of using `JSON.stringify`, you can map through the allocation object and display each key-value pair as a list item.
 
-### `useIdleTimeout.js`
+Here's an example of how you can do this:
 
-```javascript
-import { useEffect, useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { logout } from '../redux/slices/user/userSlice';
+### Updated `PortfolioModal` Component
 
-const useIdleTimeout = (timeout = 900000) => { // default 15 minutes
-  const dispatch = useDispatch();
-  const warningTime = 60000; // 1 minute
-  const timerRef = useRef(null);
-  const warningTimerRef = useRef(null);
+First, let's update the `PortfolioModal` component to render the `allocation` as a list.
 
-  useEffect(() => {
-    const resetTimer = () => {
-      clearTimeout(timerRef.current);
-      clearTimeout(warningTimerRef.current);
-
-      warningTimerRef.current = setTimeout(() => {
-        alert('You will be logged out due to inactivity');
-      }, timeout - warningTime);
-
-      timerRef.current = setTimeout(() => {
-        dispatch(logout());
-      }, timeout);
-    };
-
-    const handleActivity = () => {
-      resetTimer();
-    };
-
-    resetTimer();
-
-    window.addEventListener('mousemove', handleActivity);
-    window.addEventListener('keypress', handleActivity);
-
-    return () => {
-      clearTimeout(timerRef.current);
-      clearTimeout(warningTimerRef.current);
-      window.removeEventListener('mousemove', handleActivity);
-      window.removeEventListener('keypress', handleActivity);
-    };
-  }, [dispatch, timeout, warningTime]);
-
-  return null;
-};
-
-export default useIdleTimeout;
-```
-
-### Integrate into Your Main App Component
-
-Use the `useIdleTimeout` hook in your main application component to initialize the idle timeout logic.
-
-### `App.js`
-
-```javascript
+```jsx
 import React from 'react';
-import { Provider } from 'react-redux';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import store from './store'; // Ensure this path is correct
-import ChatbotComponent from './ChatbotComponent'; // Ensure this path is correct
-import NewsPage from './NewsPage'; // Ensure this path is correct
-import CreatePortfolioPage from './CreatePortfolioPage'; // Ensure this path is correct
-import useIdleTimeout from './useIdleTimeout'; // Ensure this path is correct
-import './App.css';
+import { createPortal } from 'react-dom';
 
-const App = () => {
-  useIdleTimeout();
+const PortfolioModal = ({ isOpen, onClose, profitLoss, capital, worth, allocation, diversity, onAccept, onReject }) => {
+    if (!isOpen) return null;
 
-  return (
-    <Provider store={store}>
-      <Router>
-        <div>
-          <Switch>
-            <Route path="/create-portfolio" component={CreatePortfolioPage} />
-            <Route path="/news" component={NewsPage} />
-            {/* Add other routes as needed */}
-          </Switch>
-          <ChatbotComponent />
-        </div>
-      </Router>
-    </Provider>
-  );
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
+                <div className="flex flex-row justify-between">
+                    <div className="w-1/2 pr-4">
+                        <h2 className="text-2xl font-bold mb-4">Portfolio Details</h2>
+                        <p><strong>Profit/Loss:</strong> {profitLoss}</p>
+                        <p><strong>Capital:</strong> {capital}</p>
+                        <p><strong>Worth:</strong> {worth}</p>
+                        <h3 className="text-xl font-bold mt-4">Allocation</h3>
+                        <ul className="list-disc list-inside">
+                            {allocation && Object.entries(allocation).map(([key, value]) => (
+                                <li key={key}><strong>{key}:</strong> {value}</li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="w-1/2 pl-4">
+                        <h2 className="text-2xl font-bold mb-4">Portfolio Diversity</h2>
+                        <p>{diversity}</p>
+                    </div>
+                </div>
+                <div className="flex justify-end mt-6">
+                    <button
+                        onClick={onReject}
+                        className="mr-4 py-2 px-4 bg-red-500 text-white rounded"
+                    >
+                        Reject
+                    </button>
+                    <button
+                        onClick={onAccept}
+                        className="py-2 px-4 bg-green-500 text-white rounded"
+                    >
+                        Accept
+                    </button>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
 };
 
-export default App;
+export default PortfolioModal;
 ```
 
-By adding `useIdleTimeout` directly into your `App` component, the idle timeout logic will be initialized when the application starts. The alert message will be displayed one minute before the user is logged out due to inactivity.
+### Usage in the Parent Component
+
+Now, ensure the parent component passes the `allocation` as an object:
+
+```jsx
+import React, { useState } from 'react';
+import PortfolioModal from './PortfolioModal'; // Adjust the import path accordingly
+
+const ParentComponent = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleRebalanceClick = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleAccept = () => {
+        // Handle accept logic here
+        setIsModalOpen(false);
+    };
+
+    const handleReject = () => {
+        // Handle reject logic here
+        setIsModalOpen(false);
+    };
+
+    const portfolio = {
+        profitLoss: "$500",
+        capital: "$10,000",
+        worth: "$10,500",
+        allocation: {
+            "Stocks": "60%",
+            "Bonds": "30%",
+            "Cash": "10%"
+        },
+        diversity: "Diverse across multiple sectors"
+    };
+
+    return (
+        <div>
+            <button onClick={handleRebalanceClick} className="py-2 px-4 bg-blue-500 text-white rounded">
+                Rebalance Portfolio
+            </button>
+
+            <PortfolioModal
+                isOpen={isModalOpen}
+                onClose={handleModalClose}
+                profitLoss={portfolio.profitLoss}
+                capital={portfolio.capital}
+                worth={portfolio.worth}
+                allocation={portfolio.allocation}
+                diversity={portfolio.diversity}
+                onAccept={handleAccept}
+                onReject={handleReject}
+            />
+        </div>
+    );
+};
+
+export default ParentComponent;
+```
+
+### Explanation
+
+1. **PortfolioModal Component**:
+    - The `allocation` prop is now rendered as a list using `Object.entries` to map over the key-value pairs.
+    - Each entry in the `allocation` object is displayed as a list item.
+
+2. **Parent Component**:
+    - Passes the `allocation` as an object to the `PortfolioModal`.
+    - Opens the modal when "Rebalance Portfolio" is clicked and handles accept/reject actions.
+
+This should provide a clear and structured list of the portfolio allocation in the modal. Adjust the styling as needed to fit

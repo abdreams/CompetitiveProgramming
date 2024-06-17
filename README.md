@@ -1,151 +1,228 @@
-Sure, let's create a `NewsPage` component that fetches news data, stores it in state, and renders it with pagination.
+To add form validation without external libraries, you can use the built-in capabilities of React. Here's how you can update the SignIn and SignUp components to include validation:
 
-Here's the complete implementation:
+### 1. SignIn Component with Validation
 
-```javascript
-import React, { useEffect, useState } from 'react';
+Here's the updated SignIn component with form validation:
 
-const DUMMY_NEWS_DATA = [
-  {
-    id: 1,
-    stockSymbol: 'AAPL',
-    headline: 'Apple releases new iPhone',
-    description: 'Apple has released the new iPhone 13 with advanced features.',
-    affectsStock: true,
-    publishedAt: '2024-06-10T10:00:00Z',
-  },
-  {
-    id: 2,
-    stockSymbol: 'TSLA',
-    headline: 'Tesla hits new production milestone',
-    description: 'Tesla has produced its millionth electric vehicle.',
-    affectsStock: true,
-    publishedAt: '2024-06-11T11:00:00Z',
-  },
-  {
-    id: 3,
-    stockSymbol: 'AMZN',
-    headline: 'Amazon launches new delivery drone',
-    description: 'Amazon has launched a new drone delivery service.',
-    affectsStock: false,
-    publishedAt: '2024-06-12T12:00:00Z',
-  },
-  // Add more dummy news data as needed
-];
+```jsx
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { login } from '../redux/slices/user/userSlice';
 
-const NewsPage = () => {
-  const [newsData, setNewsData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [newsPerPage] = useState(5);
+const SignIn = () => {
+  const dispatch = useDispatch();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    // Simulate a fetch request to the backend
-    const fetchNewsData = async () => {
-      try {
-        const response = await fetch('https://dummy-url.com/api/news');
-        // Simulate the response with dummy data
-        const data = await response.json();
-        setNewsData(data);
-      } catch (error) {
-        console.error('Error fetching news data:', error);
-        // Use dummy data for now
-        setNewsData(DUMMY_NEWS_DATA);
-      }
-    };
+  const validate = () => {
+    const errors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
-    fetchNewsData();
-  }, []);
+    if (!email) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(email)) {
+      errors.email = 'Invalid email address';
+    }
 
-  // Calculate the current news items to display
-  const indexOfLastNews = currentPage * newsPerPage;
-  const indexOfFirstNews = indexOfLastNews - newsPerPage;
-  const currentNews = newsData.slice(indexOfFirstNews, indexOfLastNews);
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (!passwordRegex.test(password)) {
+      errors.password = 'Password must be at least 8 characters long, contain one uppercase letter, one lowercase letter, one number, and one special character';
+    }
 
-  // Calculate the total number of pages
-  const totalPages = Math.ceil(newsData.length / newsPerPage);
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (validate()) {
+      dispatch(login({ email, password }));
+    }
+  };
 
   return (
-    <div className="container mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">News</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="px-6 py-3 border-b-2 border-gray-300 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-600 uppercase tracking-wider">
-                Stock Symbol
-              </th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-600 uppercase tracking-wider">
-                Headline
-              </th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-600 uppercase tracking-wider">
-                Description
-              </th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-600 uppercase tracking-wider">
-                Affects Stock
-              </th>
-              <th className="px-6 py-3 border-b-2 border-gray-300 bg-gray-100 text-left text-xs leading-4 font-medium text-gray-600 uppercase tracking-wider">
-                Published At
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentNews.map((news) => (
-              <tr key={news.id} className="hover:bg-gray-100">
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
-                  {news.stockSymbol}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
-                  {news.headline}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
-                  {news.description}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
-                  {news.affectsStock ? 'Yes' : 'No'}
-                </td>
-                <td className="px-6 py-4 whitespace-no-wrap border-b border-gray-300">
-                  {new Date(news.publishedAt).toLocaleString()}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="flex justify-between mt-4">
+    <div className="max-w-md mx-auto mt-10">
+      <h2 className="text-3xl font-semibold mb-6">Sign In</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-700">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+          />
+          {errors.email && <div className="text-red-600">{errors.email}</div>}
+        </div>
+        <div className="mb-4">
+          <label htmlFor="password" className="block text-gray-700">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+          />
+          {errors.password && <div className="text-red-600">{errors.password}</div>}
+        </div>
         <button
-          onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="bg-gray-300 text-gray-800 px-3 py-1 rounded-lg"
+          type="submit"
+          className="w-full py-2 px-4 bg-blue-500 text-white rounded-md"
         >
-          Previous
+          Sign In
         </button>
-        <span>
-          Page{' '}
-          <strong>
-            {currentPage} of {totalPages}
-          </strong>
-        </span>
-        <button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="bg-gray-300 text-gray-800 px-3 py-1 rounded-lg"
-        >
-          Next
-        </button>
-      </div>
+      </form>
     </div>
   );
 };
 
-export default NewsPage;
+export default SignIn;
+```
+
+### 2. SignUp Component with Validation
+
+Here's the updated SignUp component with form validation:
+
+```jsx
+import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { signup } from '../redux/slices/user/userSlice';
+
+const SignUp = () => {
+  const dispatch = useDispatch();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const errors = {};
+    const nameRegex = /^[a-zA-Z ]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
+
+    if (!name) {
+      errors.name = 'Name is required';
+    } else if (!nameRegex.test(name)) {
+      errors.name = 'Name must contain only letters and spaces';
+    }
+
+    if (!email) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(email)) {
+      errors.email = 'Invalid email address';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (!passwordRegex.test(password)) {
+      errors.password = 'Password must be at least 8 characters long, contain one uppercase letter, one lowercase letter, one number, and one special character';
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = 'Confirm password is required';
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords must match';
+    }
+
+    setErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (validate()) {
+      dispatch(signup({ name, email, password }));
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-10">
+      <h2 className="text-3xl font-semibold mb-6">Sign Up</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label htmlFor="name" className="block text-gray-700">Name</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setName(e.target.value)}
+            value={name}
+          />
+          {errors.name && <div className="text-red-600">{errors.name}</div>}
+        </div>
+        <div className="mb-4">
+          <label htmlFor="email" className="block text-gray-700">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setEmail(e.target.value)}
+            value={email}
+          />
+          {errors.email && <div className="text-red-600">{errors.email}</div>}
+        </div>
+        <div className="mb-4">
+          <label htmlFor="password" className="block text-gray-700">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setPassword(e.target.value)}
+            value={password}
+          />
+          {errors.password && <div className="text-red-600">{errors.password}</div>}
+        </div>
+        <div className="mb-4">
+          <label htmlFor="confirmPassword" className="block text-gray-700">Confirm Password</label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            value={confirmPassword}
+          />
+          {errors.confirmPassword && <div className="text-red-600">{errors.confirmPassword}</div>}
+        </div>
+        <button
+          type="submit"
+          className="w-full py-2 px-4 bg-blue-500 text-white rounded-md"
+        >
+          Sign Up
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default SignUp;
 ```
 
 ### Explanation
-1. **Dummy Data**: We have a `DUMMY_NEWS_DATA` array with some dummy news data.
-2. **State Management**: We manage the fetched news data and pagination state using `useState`.
-3. **Fetching Data**: The `useEffect` hook simulates a fetch request to get the news data from a backend and sets the state accordingly. Here, we directly set the dummy data for now.
-4. **Pagination**: We calculate the current page's news items and provide pagination controls to navigate through pages.
 
-This `NewsPage` component will display the news data with pagination. You can adjust the `newsPerPage` value as needed for your requirements.
+1. **State Management**:
+   - Added `email`, `password`, `name`, `confirmPassword`, and `errors` state variables.
+   - Used `useState` to manage form input values and validation errors.
+
+2. **Validation Function**:
+   - The `validate` function checks the inputs against specific rules and updates the `errors` state with any validation messages.
+   - Email, name, and password fields have specific regex patterns to enforce the required format.
+
+3. **Form Submission**:
+   - The `handleSubmit` function prevents the default form submission, runs validation, and dispatches the appropriate action if the inputs are valid.
+
+4. **Error Display**:
+   - Conditionally rendered error messages below each input field based on the `errors` state.
+
+By following this approach, you can add form validation to both the sign-in and sign-up forms without using any external libraries.

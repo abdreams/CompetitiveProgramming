@@ -1,23 +1,42 @@
-To use React Toastify to show a success message when the user signs up or signs in successfully, you need to follow these steps:
+Ah, got it. If you have the `notify` function from the React Toastify playground, you can use it to display the success messages. Let's set it up.
 
-1. **Install React Toastify**:
-   First, you need to install the `react-toastify` library.
+### Step 1: Install React Toastify
 
-   ```bash
-   npm install react-toastify
-   ```
+Ensure you have installed `react-toastify`:
 
-2. **Import and Configure React Toastify**:
-   Import `ToastContainer` and `toast` from `react-toastify` and include the `ToastContainer` component in your app.
+```bash
+npm install react-toastify
+```
 
-3. **Show Toast on Success**:
-   Use the `toast.success` method to display a success message when the user signs up or signs in successfully.
+### Step 2: Create a `notify` Function
 
-Here’s how you can integrate React Toastify into your SignIn and SignUp components:
+You can define a `notify` function to display a toast message using `toast.success` for success messages.
+
+```jsx
+import { toast } from 'react-toastify';
+
+const notify = (message) => {
+  toast.success(message, {
+    position: "top-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+  });
+};
+
+export default notify;
+```
+
+### Step 3: Import ToastContainer and notify
+
+In your `App` component, import `ToastContainer` and include it in the JSX. In your SignIn and SignUp components, import and call the `notify` function to display toast messages.
 
 ### App Component
 
-Ensure you include `ToastContainer` in your main app component so that it can display toasts from anywhere in your application.
+Ensure the `ToastContainer` is included in your main app component so that it can display toasts from anywhere in your application.
 
 ```jsx
 import React from 'react';
@@ -52,7 +71,7 @@ Update the SignIn component to show a success toast when the user signs in succe
 ```jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import notify from './notify'; // Import the notify function
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -96,7 +115,7 @@ const SignIn = () => {
     if (Object.keys(validationErrors).length === 0) {
       // Perform sign-in logic
       console.log('Sign in successful');
-      toast.success('Signed in successfully!');
+      notify('Signed in successfully!');
       navigate('/home'); // Redirect to home page after sign-in
     }
   };
@@ -147,7 +166,7 @@ Update the SignUp component to show a success toast when the user signs up succe
 ```jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import notify from './notify'; // Import the notify function
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -190,80 +209,4 @@ const SignUp = () => {
 
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (!/^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{8,}$/.test(formData.password)) {
-      newErrors.password = 'Password must have at least 8 characters, one uppercase letter, one number, and one special character';
-    }
-
-    return newErrors;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-
-    const newErrors = validate();
-    setErrors((prev) => ({ ...prev, ...newErrors }));
-  };
-
-  const handleBlur = () => {
-    setErrors(validate());
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const validationErrors = validate();
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      // Perform sign-up logic
-      console.log('Sign up successful');
-      toast.success('Signed up successfully!');
-      navigate('/home'); // Redirect to home page after sign-up
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto mt-10 p-5 shadow-lg">
-      <h2 className="text-2xl font-bold mb-5">Sign Up</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="block mb-2">First Name</label>
-          <input
-            type="text"
-            name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full p-2 border rounded"
-          />
-          {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Last Name</label>
-          <input
-            type="text"
-            name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full p-2 border rounded"
-          />
-          {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Date of Birth</label>
-          <input
-            type="date"
-            name="dob"
-            value={formData.dob}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full p-2 border rounded"
-          />
-          {errors.dob && <p className="text-red-500 text-sm">{errors.dob}</p>}
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Email</label>
-          <input
-            type="email"
-            name="email"
+    } else if (!/^(?=.*

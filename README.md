@@ -1,157 +1,257 @@
-### Rough Resource Estimations Based on Data Amount and Metadata
+To provide real-time validation for the sign-in and sign-up forms, we can add `onChange` and `onBlur` event handlers for each input field. This will validate the field as the user types or moves out of the input field. Here’s how to do it:
 
-#### Data Size and Complexity
-1. **Historical Price Data**
-   - Number of assets: 500
-   - Data points per asset: Daily prices for 10 years (approx. 3650 data points)
-   - Total data points: 500 * 3650 = 1,825,000
-   - Data size: ~2 GB (assuming each data point is 1 KB)
+### SignIn Component
 
-2. **Metadata**
-   - Asset attributes (sector, market cap, etc.): ~100 KB per asset
-   - Total metadata size: 500 * 100 KB = 50 MB
+```jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-#### Data Storage and Processing
-1. **Database**
-   - **Storage:** PostgreSQL for primary storage (2 GB data + 50 MB metadata)
-   - **Data Warehouse:** Amazon Redshift for large-scale analytics
+const SignIn = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({});
 
-2. **Processing**
-   - **Data Ingestion:** ETL pipelines to process and load historical data
-   - **Computational Resources:** High-performance computing for model training and back-testing
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email address is invalid';
+    }
 
-#### Personnel
-1. **Data Scientists (2-3)**
-   - Handle data analysis, model development, and optimization algorithms.
-   - Workload includes processing large datasets, training models, and performing back-testing.
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (!/^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{8,}$/.test(formData.password)) {
+      newErrors.password = 'Password must have at least 8 characters, one uppercase letter, one number, and one special character';
+    }
 
-2. **Backend Developers (2-3)**
-   - Develop APIs for data retrieval, model integration, and constraints management.
-   - Implement data processing pipelines and optimize database interactions.
+    return newErrors;
+  };
 
-3. **Frontend Developers (1-2)**
-   - Develop the user interface for asset selection, portfolio visualization, and monitoring.
-   - Implement interactive charts and data visualization components.
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-4. **DevOps Engineers (1-2)**
-   - Manage cloud infrastructure, containerization (Docker), and orchestration (Kubernetes).
-   - Set up CI/CD pipelines and ensure scalable, reliable deployment.
+    const newErrors = validate();
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+  };
 
-5. **Database Administrators (1)**
-   - Manage PostgreSQL and data warehouse (Amazon Redshift) to ensure data integrity and performance.
-   - Optimize database queries and storage for large-scale data.
+  const handleBlur = () => {
+    setErrors(validate());
+  };
 
-6. **QA Engineers (1-2)**
-   - Test the system’s functionality, performance, and security.
-   - Ensure data accuracy and system reliability.
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
 
-#### Tools and Software
-1. **Development Tools**
-   - **IDEs:** PyCharm, VSCode
-   - **Version Control:** Git
+    if (Object.keys(validationErrors).length === 0) {
+      // Perform sign-in logic
+      console.log('Sign in successful');
+      navigate('/home'); // Redirect to home page after sign-in
+    }
+  };
 
-2. **Libraries and Frameworks**
-   - **Backend:** Django, TensorFlow
-   - **Frontend:** React.js, Plotly
-   - **Data Processing:** Pandas, CVXPY, Matplotlib
+  return (
+    <div className="max-w-md mx-auto mt-10 p-5 shadow-lg">
+      <h2 className="text-2xl font-bold mb-5">Sign In</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block mb-2">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Password</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+        </div>
+        <button type="submit" className="w-full py-2 px-4 bg-blue-500 text-white rounded-md">
+          Sign In
+        </button>
+      </form>
+    </div>
+  );
+};
 
-3. **Monitoring and Logging**
-   - **Monitoring:** Prometheus, Grafana
-   - **Logging:** ELK Stack (Elasticsearch, Logstash, Kibana)
+export default SignIn;
+```
 
-#### Infrastructure
-1. **Development Environment**
-   - Local machines for development and testing.
-   - Virtual environments for isolated development.
+### SignUp Component
 
-2. **Staging and Production Environments**
-   - **Cloud Infrastructure:** AWS or GCP
-   - **Container Orchestration:** Kubernetes
-   - **Continuous Integration/Deployment:** Jenkins or GitLab CI
+```jsx
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-This estimation ensures that the necessary resources are allocated based on the data size and complexity, enabling efficient processing and management of the portfolio optimization system.
+const SignUp = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    dob: '',
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState({});
 
-### Rough Resource Estimations
+  const validate = () => {
+    const newErrors = {};
 
-#### Personnel
-1. **Data Scientists (2-3)**
-   - Expertise in machine learning, financial modeling, and optimization algorithms.
-2. **Backend Developers (2-3)**
-   - Experience with Django, API development, and integrating machine learning models.
-3. **Frontend Developers (1-2)**
-   - Proficient in React.js and data visualization libraries like Plotly.
-4. **DevOps Engineers (1-2)**
-   - Skilled in Docker, Kubernetes, and cloud deployment (AWS, GCP).
-5. **Database Administrators (1)**
-   - Manage PostgreSQL and data warehouse solutions.
-6. **QA Engineers (1-2)**
-   - Test functionality, performance, and security of the system.
+    if (!formData.firstName) {
+      newErrors.firstName = 'First name is required';
+    }
 
-#### Infrastructure
-1. **Development Environment**
-   - Local machines for development and testing.
-   - Version control system (e.g., Git).
-2. **Staging and Production Environments**
-   - Cloud infrastructure (AWS or GCP).
-   - Container orchestration (Kubernetes).
-   - CI/CD pipelines for automated deployment.
+    if (!formData.lastName) {
+      newErrors.lastName = 'Last name is required';
+    }
 
-#### Tools and Software
-1. **Development Tools**
-   - IDEs like PyCharm or VSCode.
-   - Project management tools like Jira or Trello.
-2. **Libraries and Frameworks**
-   - Django, TensorFlow, React.js, Pandas, CVXPY, Matplotlib.
-3. **Monitoring and Logging**
-   - Prometheus, Grafana, ELK Stack.
+    if (!formData.dob) {
+      newErrors.dob = 'Date of birth is required';
+    } else {
+      const today = new Date();
+      const birthDate = new Date(formData.dob);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      if (age < 18) {
+        newErrors.dob = 'You must be at least 18 years old';
+      }
+    }
 
-### Domain-Driven Design (DDD) & Bounded Context
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email address is invalid';
+    }
 
-#### Core Domain: Portfolio Optimization
-- **Asset Selection Context**
-  - **Description:** Manage the selection of assets based on various criteria (historical performance, sector diversification).
-  - **Entities:** Asset, Criteria, SelectionStrategy
-  - **Services:** AssetSelector
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (!/^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{8,}$/.test(formData.password)) {
+      newErrors.password = 'Password must have at least 8 characters, one uppercase letter, one number, and one special character';
+    }
 
-- **Risk Model Context**
-  - **Description:** Develop and manage risk models to estimate volatility and correlations.
-  - **Entities:** RiskModel, Volatility, Correlation
-  - **Services:** RiskModelGenerator
+    return newErrors;
+  };
 
-- **Constraints Management Context**
-  - **Description:** Define and apply constraints on portfolio allocations.
-  - **Entities:** Constraint, AllocationLimit, SectorExposure
-  - **Services:** ConstraintValidator
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-- **Back-Testing Context**
-  - **Description:** Test portfolio allocations using historical data.
-  - **Entities:** HistoricalData, BackTestResult
-  - **Services:** BackTester
+    const newErrors = validate();
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+  };
 
-- **Monitoring and Rebalancing Context**
-  - **Description:** Monitor portfolio performance and rebalance allocations.
-  - **Entities:** Portfolio, RebalanceStrategy
-  - **Services:** PortfolioMonitor, Rebalancer
+  const handleBlur = () => {
+    setErrors(validate());
+  };
 
-- **Objective Function Context**
-  - **Description:** Define and evaluate the objective function for risk-return trade-off.
-  - **Entities:** ObjectiveFunction, Risk, Return
-  - **Services:** ObjectiveEvaluator
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    setErrors(validationErrors);
 
-#### Supporting Contexts
-- **Data Management Context**
-  - **Description:** Handle data storage, retrieval, and quality assurance.
-  - **Entities:** DataSet, DataQualityMetric
-  - **Services:** DataCleaner, DataRetriever
+    if (Object.keys(validationErrors).length === 0) {
+      // Perform sign-up logic
+      console.log('Sign up successful');
+      navigate('/home'); // Redirect to home page after sign-up
+    }
+  };
 
-- **User Interface Context**
-  - **Description:** Provide a user interface for interacting with the system.
-  - **Entities:** Dashboard, UserSettings
-  - **Services:** UIService
+  return (
+    <div className="max-w-md mx-auto mt-10 p-5 shadow-lg">
+      <h2 className="text-2xl font-bold mb-5">Sign Up</h2>
+      <form onSubmit={handleSubmit}>
+        <div className="mb-4">
+          <label className="block mb-2">First Name</label>
+          <input
+            type="text"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.firstName && <p className="text-red-500 text-sm">{errors.firstName}</p>}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Last Name</label>
+          <input
+            type="text"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.lastName && <p className="text-red-500 text-sm">{errors.lastName}</p>}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Date of Birth</label>
+          <input
+            type="date"
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.dob && <p className="text-red-500 text-sm">{errors.dob}</p>}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+        </div>
+        <div className="mb-4">
+          <label className="block mb-2">Password</label>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className="w-full p-2 border rounded"
+          />
+          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+        </div>
+        <button
+          type="submit"
+          className="w-full py-2 px-4 bg-blue-500 text-white rounded-md"
+        >
+          Sign Up
+        </button>
+      </form>
+    </div>
+  );
+};
 
-- **Deployment and Infrastructure Context**
-  - **Description:** Manage the deployment and infrastructure aspects.
-  - **Entities:** DeploymentConfig, Infrastructure
-  - **Services:** DevOpsService
+export default SignUp;
+```
 
-This DDD approach ensures each context has clearly defined boundaries and responsibilities, promoting modularity and scalability.
+### Summary
+
+- **Real-time Validation**: Uses `onChange` and `onBlur` handlers to perform validation as the user types or moves out of the input field.
+- **Combined State Management**: Both `SignIn` and `SignUp` components use a single `useState` object (`formData`) to manage the form data.
+- **Validation Logic**: Validates each field based on specific rules, including email format, password complexity, and age validation for date of birth.
+- **Error Handling**: Displays error messages for each field when validation fails.
+
+This approach ensures that

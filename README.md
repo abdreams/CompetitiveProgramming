@@ -1,10 +1,58 @@
-To provide real-time validation for the sign-in and sign-up forms, we can add `onChange` and `onBlur` event handlers for each input field. This will validate the field as the user types or moves out of the input field. Here’s how to do it:
+To use React Toastify to show a success message when the user signs up or signs in successfully, you need to follow these steps:
+
+1. **Install React Toastify**:
+   First, you need to install the `react-toastify` library.
+
+   ```bash
+   npm install react-toastify
+   ```
+
+2. **Import and Configure React Toastify**:
+   Import `ToastContainer` and `toast` from `react-toastify` and include the `ToastContainer` component in your app.
+
+3. **Show Toast on Success**:
+   Use the `toast.success` method to display a success message when the user signs up or signs in successfully.
+
+Here’s how you can integrate React Toastify into your SignIn and SignUp components:
+
+### App Component
+
+Ensure you include `ToastContainer` in your main app component so that it can display toasts from anywhere in your application.
+
+```jsx
+import React from 'react';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import SignIn from './SignIn';
+import SignUp from './SignUp';
+
+const App = () => {
+  return (
+    <Router>
+      <div>
+        <ToastContainer />
+        <Routes>
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          {/* Add other routes here */}
+        </Routes>
+      </div>
+    </Router>
+  );
+};
+
+export default App;
+```
 
 ### SignIn Component
+
+Update the SignIn component to show a success toast when the user signs in successfully.
 
 ```jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -48,6 +96,7 @@ const SignIn = () => {
     if (Object.keys(validationErrors).length === 0) {
       // Perform sign-in logic
       console.log('Sign in successful');
+      toast.success('Signed in successfully!');
       navigate('/home'); // Redirect to home page after sign-in
     }
   };
@@ -93,9 +142,12 @@ export default SignIn;
 
 ### SignUp Component
 
+Update the SignUp component to show a success toast when the user signs up successfully.
+
 ```jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -165,6 +217,7 @@ const SignUp = () => {
     if (Object.keys(validationErrors).length === 0) {
       // Perform sign-up logic
       console.log('Sign up successful');
+      toast.success('Signed up successfully!');
       navigate('/home'); // Redirect to home page after sign-up
     }
   };
@@ -214,44 +267,3 @@ const SignUp = () => {
           <input
             type="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full p-2 border rounded"
-          />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-        </div>
-        <div className="mb-4">
-          <label className="block mb-2">Password</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            className="w-full p-2 border rounded"
-          />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-        </div>
-        <button
-          type="submit"
-          className="w-full py-2 px-4 bg-blue-500 text-white rounded-md"
-        >
-          Sign Up
-        </button>
-      </form>
-    </div>
-  );
-};
-
-export default SignUp;
-```
-
-### Summary
-
-- **Real-time Validation**: Uses `onChange` and `onBlur` handlers to perform validation as the user types or moves out of the input field.
-- **Combined State Management**: Both `SignIn` and `SignUp` components use a single `useState` object (`formData`) to manage the form data.
-- **Validation Logic**: Validates each field based on specific rules, including email format, password complexity, and age validation for date of birth.
-- **Error Handling**: Displays error messages for each field when validation fails.
-
-This approach ensures that

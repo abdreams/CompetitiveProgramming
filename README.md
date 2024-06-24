@@ -1,6 +1,4 @@
-Sure, I'll modify the `RebalancePortfolio` component to handle the new data format. Specifically, I'll update the data fetching logic to parse the `allocation` object and render the table with `stockSymbol` and `percentAllocated`. 
-
-Here's the updated code:
+Sure, I will modify the `handleAccept` function to send the data back to the backend in the same format as the response. Here is the updated code:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -14,6 +12,7 @@ const RebalancePortfolio = () => {
     const navigate = useNavigate();
     const { portfolioId } = useParams();
     const [data, setData] = useState([]);
+    const [capital, setCapital] = useState('');
     const [loading, setLoading] = useState(true);
     const [globalFilter, setGlobalFilter] = useState('');
 
@@ -30,6 +29,7 @@ const RebalancePortfolio = () => {
                 percentAllocated
             }));
             setData(transformedData);
+            setCapital(result.capital); // Store capital value
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Error fetching data, displaying dummy data instead.');
@@ -45,6 +45,7 @@ const RebalancePortfolio = () => {
                 { stockSymbol: 'ADBE', percentAllocated: 10 },
                 { stockSymbol: 'CRM', percentAllocated: 10 }
             ]);
+            setCapital('10004.64'); // Dummy capital value
         } finally {
             setLoading(false); // Stop loader
         }
@@ -68,17 +69,23 @@ const RebalancePortfolio = () => {
 
     const handleAccept = async () => {
         try {
-            const allocations = data.reduce((acc, { stockSymbol, percentAllocated }) => {
-                acc[stockSymbol] = percentAllocated;
+            const allocation = data.reduce((acc, { stockSymbol, percentAllocated }) => {
+                acc[stockSymbol] = parseFloat(percentAllocated); // Convert to float
                 return acc;
             }, {});
+
+            const payload = {
+                pid: portfolioId,
+                allocation,
+                capital
+            };
 
             const response = await fetch(`https://dummy-url.com/api/save-portfolio/${portfolioId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ allocation: allocations }),
+                body: JSON.stringify(payload),
             });
 
             if (response.ok) {
@@ -261,9 +268,9 @@ export default RebalancePortfolio;
 
 ### Explanation
 
-1. **Data Transformation**: Transformed the fetched data from the API response to match the table's expected format.
-2. **Removed Stock Name Column**: Since the response doesn't include a stock name, I removed the stock name column from the table.
-3. **Updated `handleAccept`**: Adjusted the function to send the allocation data in the required format when saving the portfolio.
-4. **Updated `handleRowClick`**: Ensured that clicking on input or button elements within a row doesn't trigger the row click event.
+1. **Storing Capital**: Added a state variable `capital` to store the capital value from the API response.
+2. **Transforming Data**: Transformed the fetched data into the required format for rendering in the table.
+3. **Payload Preparation**: Updated the `handleAccept` function to prepare the payload in the required format with `pid`, `allocation`, and `capital`.
+4. **Removed Stock Name Column**: Since the response doesn't include a stock name, I removed the stock name column from the table. 
 
-This setup should now correctly handle the data from the API response and render it in the table, along with providing the required functionalities.
+This setup should now correctly handle the

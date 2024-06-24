@@ -1,11 +1,18 @@
-To implement form validation in the `RebalancePortfolio` component ensuring that all percent allocations add up to 100, we'll take the following steps:
+To address the issues you mentioned, we need to do two main things:
 
-1. Track the total allocation and remaining allocation state.
-2. Display the remaining allocation to the user.
-3. Validate the total allocation when user inputs are changed.
-4. Display an error message if the allocation is not equal to 100.
+1. Prevent the pagination from resetting to the first page when edits are made.
+2. Fix the issue where editing a field only changes one digit at a time.
 
-Here's the updated code:
+Here's the updated code to handle these concerns:
+
+1. Preventing pagination from resetting:
+   - Ensure `useState` for pagination is used correctly.
+   - Preserve the pagination state after edits.
+
+2. Fixing the input field issue:
+   - Properly manage the state updates for input changes.
+
+Here's the updated `RebalancePortfolio` component:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -181,6 +188,7 @@ const RebalancePortfolio = () => {
         prepareRow,
         state: { pageIndex },
         setGlobalFilter: setTableGlobalFilter,
+        setPageIndex, // Add this
     } = useTable(
         { columns, data, initialState: { pageIndex: 0, pageSize: 8 } },
         useGlobalFilter,
@@ -196,6 +204,11 @@ const RebalancePortfolio = () => {
         if (e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'BUTTON') { // Only navigate if target is not input or button
             navigate(`/stock-history/${row.original.stockSymbol}`);
         }
+    };
+
+    const handleInputFocus = (index) => {
+        // Ensure the page index does not change on input focus
+        setPageIndex(pageIndex);
     };
 
     if (loading) {
@@ -255,6 +268,17 @@ const RebalancePortfolio = () => {
                     })}
                 </tbody>
             </table>
+            <div className="mt-5 text-right">
+                <span className="text-sm font-bold">Remaining Allocation: {100 - totalAllocation}%</span>
+                {allocationError && (
+                    <div className="mt-2 text-red-500 text-sm">
+                        {allocationError}
+                    </div>
+               Continuing the response:
+
+```jsx
+                )}
+            </div>
             <div className="flex justify-between mt-5">
                 <button onClick={() => previousPage()} disabled={!canPreviousPage} className="px-4 py-2 bg-gray-300 text-gray-700 rounded mr-3">
                     Previous
@@ -269,4 +293,40 @@ const RebalancePortfolio = () => {
                     Next
                 </button>
             </div>
-            <div
+            <div className="flex justify-end mt-5">
+                <button onClick={handleReject} className="px-4 py-2 bg-red-500 text-white rounded mr-3">
+                    Reject
+                </button>
+                <button onClick={handleAccept} className="px-4 py-2 bg-green-500 text-white rounded">
+                    Accept
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default RebalancePortfolio;
+```
+
+### Key Changes
+
+1. **Prevent Pagination Reset:**
+   - `setPageIndex(pageIndex)` is called in `handleInputFocus` to ensure the current page is maintained when input is focused.
+   
+2. **Input Change Handling:**
+   - `handleInputChange` directly updates the state without resetting the pagination state.
+
+3. **Remaining Allocation and Error Display:**
+   - Added a display for the remaining allocation and any allocation errors below the table.
+
+4. **Correctly handle focus to prevent resetting pagination:**
+   - This ensures that if the user is editing input fields, the page won't reset.
+
+### Testing
+
+Ensure to test:
+1. Editing percent allocation fields to ensure smooth input without the field resetting.
+2. Navigating between pages and making edits to ensure the pagination does not reset.
+3. The validation for total allocation sum and displaying appropriate messages.
+
+This implementation should now address the issues of digit editing and pagination reset while providing a clear and user-friendly interface for rebalancing the portfolio.

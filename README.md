@@ -1,111 +1,82 @@
 
-The error "Rendered more hooks than during previous render" typically occurs when hooks are conditionally rendered or their number changes between renders. This can often happen if the hooks are inside loops or conditional statements. 
+To implement pagination for the `portfolio[0].stocks` in your table, we'll need to set up state for the current page and a function to handle page changes. We'll use Tailwind CSS for styling the table and pagination controls.
 
-Let's correct this issue by ensuring that the hooks are used consistently. Here's an updated version of the `PaginatedTable` component that should address the problem:
+Here's how you can update your code to include pagination:
+
+1. Add state for the current page and items per page.
+2. Create a function to handle page changes.
+3. Slice the data based on the current page.
+4. Render pagination controls.
+
+Here is the updated code with the pagination logic:
 
 ```jsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
-const portfolio = [
-  {
-    stocks: [
-      { id: 1, name: 'John Doe', age: 28, job: 'Engineer' },
-      { id: 2, name: 'Jane Smith', age: 34, job: 'Doctor' },
-      { id: 3, name: 'Peter Johnson', age: 23, job: 'Developer' },
-      { id: 4, name: 'Lucy Brown', age: 29, job: 'Designer' },
-      { id: 5, name: 'Michael Scott', age: 45, job: 'Manager' },
-      { id: 6, name: 'Dwight Schrute', age: 38, job: 'Salesman' },
-      { id: 7, name: 'Jim Halpert', age: 34, job: 'Salesman' },
-      { id: 8, name: 'Pam Beesly', age: 31, job: 'Receptionist' },
-      { id: 9, name: 'Ryan Howard', age: 27, job: 'Temp' },
-      { id: 10, name: 'Kelly Kapoor', age: 35, job: 'Customer Service' },
-      { id: 11, name: 'Stanley Hudson', age: 55, job: 'Salesman' },
-      { id: 12, name: 'Kevin Malone', age: 40, job: 'Accountant' },
-      { id: 13, name: 'Oscar Martinez', age: 38, job: 'Accountant' },
-      { id: 14, name: 'Angela Martin', age: 36, job: 'Accountant' },
-      { id: 15, name: 'Phyllis Vance', age: 50, job: 'Saleswoman' },
-      { id: 16, name: 'Andy Bernard', age: 35, job: 'Salesman' },
-      { id: 17, name: 'Creed Bratton', age: 60, job: 'Quality Assurance' },
-      { id: 18, name: 'Meredith Palmer', age: 45, job: 'Supplier Relations' },
-      { id: 19, name: 'Toby Flenderson', age: 44, job: 'HR' },
-      { id: 20, name: 'Darryl Philbin', age: 35, job: 'Warehouse' },
-    ],
-  },
-];
-
-const itemsPerPage = 10;
-
-const PaginatedTable = () => {
+const PaginatedTable = ({ portfolio }) => {
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const stocks = portfolio[0].stocks;
+  const stocks = portfolio[0]?.stocks || [];
 
   // Calculate total pages
   const totalPages = Math.ceil(stocks.length / itemsPerPage);
 
-  // Get the current items
-  const currentData = stocks.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // Get the current items using useMemo to avoid recalculating on every render
+  const currentData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return stocks.slice(start, end);
+  }, [currentPage, stocks]);
 
   // Handle page change
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              ID
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Age
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Job
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {currentData.map((stock, index) => (
-            <tr key={index}>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                {stock.id}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {stock.name}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {stock.age}
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {stock.job}
-              </td>
+      <div className="bg-white md:w-[40rem] w-[80vw] shadow-md rounded-lg p-4">
+        <h3 className="text-lg font-medium mb-2">
+          Stocks in <span className="underline text-[#D71E28]">{portfolio[0]?.name}</span>
+        </h3>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Symbol</th>
+              <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Stock Price</th>
+              <th className="py-2 px-4 border-b-2 border-gray-200 text-left leading-tight">Percentage</th>
             </tr>
+          </thead>
+          <tbody>
+            {currentData.map((stock, index) => (
+              <tr
+                key={index}
+                onClick={() => handleRowClick(stock?.stocksymbol)}
+                className="hover:bg-gray-100 cursor-pointer"
+              >
+                <td className="py-2 px-4 border-b border-gray-200">{stock?.stocksymbol}</td>
+                <td className="py-2 px-4 border-b border-gray-200">{stock?.closingprice}</td>
+                <td className="py-2 px-4 border-b border-gray-200">{stock?.allocation}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="mt-4 flex justify-center">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index}
+              onClick={() => handlePageChange(index + 1)}
+              className={`px-3 py-1 mx-1 border rounded ${
+                currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-gray-700'
+              }`}
+            >
+              {index + 1}
+            </button>
           ))}
-        </tbody>
-      </table>
-      <div className="mt-4 flex justify-center">
-        {Array.from({ length: totalPages }, (_, index) => (
-          <button
-            key={index}
-            onClick={() => handlePageChange(index + 1)}
-            className={`px-3 py-1 mx-1 border rounded ${
-              currentPage === index + 1
-                ? 'bg-blue-500 text-white'
-                : 'bg-white text-blue-500 border-blue-500'
-            }`}
-          >
-            {index + 1}
-          </button>
-        ))}
+        </div>
       </div>
     </div>
   );
@@ -114,15 +85,20 @@ const PaginatedTable = () => {
 export default PaginatedTable;
 ```
 
-### Explanation of Changes:
+### Explanation:
 
-1. **Consistent Hook Usage**:
-   - Ensure hooks are not conditionally rendered and their number does not change between renders.
+1. **State Management**:
+   - `currentPage`: Holds the current page number.
+   - `itemsPerPage`: Holds the number of items per page (set to 10).
 
-2. **Key Prop**:
-   - Changed the key prop in the `map` function to use the `index` directly instead of `stock.id`. Although it's generally better to use a unique ID, using the index here ensures there's always a key without undefined behavior.
+2. **Memoization**:
+   - `currentData` is calculated using `useMemo` to prevent unnecessary recalculations. It slices the `stocks` array to get only the items for the current page.
 
-3. **Current Data Calculation**:
-   - Moved the calculation of `currentData` and `totalPages` outside the `render` return to ensure these computations are consistent across renders.
+3. **Handle Page Change**:
+   - `handlePageChange` updates the `currentPage` state to the selected page, ensuring it doesn't go out of bounds.
 
-This should resolve the issue and provide a stable paginated table component with Tailwind CSS styling.
+4. **Render Pagination Controls**:
+   - Buttons for each page are rendered dynamically based on the `totalPages` calculation.
+   - The `className` for the buttons is conditionally set to highlight the current page.
+
+This approach ensures that your table pagination is efficient and prevents unnecessary re-renders or infinite loops.

@@ -1,29 +1,35 @@
-To implement pagination for a table in React with 10 rows per page, you can follow these steps:
+Sure, here are the modifications to handle the structure where `portfolio[0].stocks` is the data array. I'll assume `portfolio` is an array with at least one object, and the `stocks` array contains the relevant data.
 
-1. Create a state to manage the current page.
-2. Slice the data based on the current page to display only the rows for that page.
-3. Create functions to handle page changes.
-4. Render the table with the paginated data.
-
-Here's a complete example:
-
-### Step-by-Step Implementation
-
-#### 1. Setup State and Data
-
-First, let's set up the state for the current page and the data:
+### Updated PaginatedTable Component
 
 ```jsx
 import React, { useState } from 'react';
 
-const data = [
-  // Add your data here
-  // Example:
-  { id: 1, name: 'John Doe', age: 28, job: 'Engineer' },
-  { id: 2, name: 'Jane Smith', age: 34, job: 'Doctor' },
-  { id: 3, name: 'Peter Johnson', age: 23, job: 'Developer' },
-  // Add more data up to your desired length
-  // ...
+const portfolio = [
+  {
+    stocks: [
+      { id: 1, name: 'John Doe', age: 28, job: 'Engineer' },
+      { id: 2, name: 'Jane Smith', age: 34, job: 'Doctor' },
+      { id: 3, name: 'Peter Johnson', age: 23, job: 'Developer' },
+      { id: 4, name: 'Lucy Brown', age: 29, job: 'Designer' },
+      { id: 5, name: 'Michael Scott', age: 45, job: 'Manager' },
+      { id: 6, name: 'Dwight Schrute', age: 38, job: 'Salesman' },
+      { id: 7, name: 'Jim Halpert', age: 34, job: 'Salesman' },
+      { id: 8, name: 'Pam Beesly', age: 31, job: 'Receptionist' },
+      { id: 9, name: 'Ryan Howard', age: 27, job: 'Temp' },
+      { id: 10, name: 'Kelly Kapoor', age: 35, job: 'Customer Service' },
+      { id: 11, name: 'Stanley Hudson', age: 55, job: 'Salesman' },
+      { id: 12, name: 'Kevin Malone', age: 40, job: 'Accountant' },
+      { id: 13, name: 'Oscar Martinez', age: 38, job: 'Accountant' },
+      { id: 14, name: 'Angela Martin', age: 36, job: 'Accountant' },
+      { id: 15, name: 'Phyllis Vance', age: 50, job: 'Saleswoman' },
+      { id: 16, name: 'Andy Bernard', age: 35, job: 'Salesman' },
+      { id: 17, name: 'Creed Bratton', age: 60, job: 'Quality Assurance' },
+      { id: 18, name: 'Meredith Palmer', age: 45, job: 'Supplier Relations' },
+      { id: 19, name: 'Toby Flenderson', age: 44, job: 'HR' },
+      { id: 20, name: 'Darryl Philbin', age: 35, job: 'Warehouse' },
+    ],
+  },
 ];
 
 const itemsPerPage = 10;
@@ -31,11 +37,13 @@ const itemsPerPage = 10;
 const PaginatedTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
+  const stocks = portfolio[0].stocks;
+
   // Calculate total pages
-  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const totalPages = Math.ceil(stocks.length / itemsPerPage);
 
   // Get the current items
-  const currentData = data.slice(
+  const currentData = stocks.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -46,33 +54,53 @@ const PaginatedTable = () => {
   };
 
   return (
-    <div>
-      <table>
-        <thead>
+    <div className="container mx-auto p-6">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
           <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Job</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              ID
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Age
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Job
+            </th>
           </tr>
         </thead>
-        <tbody>
-          {currentData.map((item) => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.name}</td>
-              <td>{item.age}</td>
-              <td>{item.job}</td>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {currentData.map((stock, index) => (
+            <tr key={stock.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {stock.id}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {stock.name}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {stock.age}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {stock.job}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div>
+      <div className="mt-4 flex justify-center">
         {Array.from({ length: totalPages }, (_, index) => (
           <button
             key={index}
             onClick={() => handlePageChange(index + 1)}
-            disabled={currentPage === index + 1}
+            className={`px-3 py-1 mx-1 border rounded ${
+              currentPage === index + 1
+                ? 'bg-blue-500 text-white'
+                : 'bg-white text-blue-500 border-blue-500'
+            }`}
           >
             {index + 1}
           </button>
@@ -87,22 +115,16 @@ export default PaginatedTable;
 
 ### Explanation
 
-1. **State Initialization**:
-   - `currentPage` is used to track the current page number.
-   - `itemsPerPage` is set to 10, defining the number of rows per page.
+1. **Data Source**:
+   - Data is now sourced from `portfolio[0].stocks`.
 
-2. **Total Pages Calculation**:
-   - `totalPages` is calculated using `Math.ceil(data.length / itemsPerPage)` to determine the total number of pages.
+2. **Current Data Calculation**:
+   - The `currentData` variable is calculated from `portfolio[0].stocks` using the `slice` method to get the relevant items for the current page.
 
-3. **Current Data Slicing**:
-   - `currentData` is derived from the `data` array using `slice` to get only the rows for the current page.
+3. **Table Mapping**:
+   - The table rows are generated by mapping `currentData`.
 
-4. **Page Change Handling**:
-   - `handlePageChange` updates the `currentPage` state when a page number button is clicked.
+4. **Pagination Logic**:
+   - The pagination logic calculates the total pages based on the length of `portfolio[0].stocks`.
 
-5. **Rendering**:
-   - The table is rendered using the `currentData`.
-   - Pagination buttons are created using `Array.from`, mapping through the total pages and generating buttons for each page.
-   - The `disabled` attribute is set on the current page button to prevent reloading the same page.
-
-This code snippet provides a basic paginated table with navigation buttons. You can style the table and buttons further using CSS or a library like `tailwindcss` to match your design requirements.
+This will paginate the data in `portfolio[0].stocks` and display 10 rows per page with pagination buttons styled using Tailwind CSS.

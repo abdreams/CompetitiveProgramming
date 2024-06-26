@@ -1,100 +1,288 @@
-To display the keys of your portfolio allocation data in a more readable format (e.g., converting `financialServices` to `Financial Services`), you can create a function that formats the keys and use it within your `Object.entries().map()` method. Here’s how you can do it:
+To apply a dark mode theme to `react-select`, you can use the `styles` prop to customize the styling of the `Select` component. Here's how you can create a dark mode for the `Select` component:
 
-1. **Create a function to format the keys:**
+### Dark Mode Styles
+First, define your dark mode styles. These styles will override the default `react-select` styles to create a dark mode appearance.
 
 ```jsx
-const formatKey = (key) => {
-    return key
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
+const darkModeStyles = {
+    control: (provided) => ({
+        ...provided,
+        backgroundColor: '#333',
+        borderColor: '#555',
+        color: '#fff',
+    }),
+    menu: (provided) => ({
+        ...provided,
+        backgroundColor: '#333',
+        color: '#fff',
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isFocused ? '#444' : '#333',
+        color: '#fff',
+    }),
+    singleValue: (provided) => ({
+        ...provided,
+        color: '#fff',
+    }),
+    input: (provided) => ({
+        ...provided,
+        color: '#fff',
+    }),
+    placeholder: (provided) => ({
+        ...provided,
+        color: '#aaa',
+    }),
 };
 ```
 
-2. **Use this function within your map:**
+### Applying Dark Mode to `react-select`
+Use the `styles` prop to apply these styles to your `Select` component.
 
 ```jsx
-const allocationData = {
-    financialServices: 90,
-    technology: 60,
-    healthcare: 40,
-};
+import React, { useEffect, useState } from 'react';
+import { useTable, useGlobalFilter, useSortBy, usePagination } from 'react-table';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { FaTrash } from 'react-icons/fa';
+import Loader from '../components/Loader';
+import Select from 'react-select';
 
-const formattedEntries = Object.entries(allocationData).map(([key, value]) => ({
-    key: formatKey(key),
-    value,
-}));
+const RebalancePortfolio = () => {
+    const navigate = useNavigate();
+    const { portfolioId } = useParams();
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [globalFilter, setGlobalFilter] = useState('');
+    const [stockOptions, setStockOptions] = useState([]);
+    const [selectedStock, setSelectedStock] = useState(null);
 
-return (
-    <div>
-        <h2>Portfolio Allocation</h2>
-        <ul>
-            {formattedEntries.map(({ key, value }) => (
-                <li key={key}>
-                    {key}: {value}%
-                </li>
-            ))}
-        </ul>
-    </div>
-);
-```
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`https://dummy-url.com/api/rebalanced-portfolio/${portfolioId}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const result = await response.json();
+            const transformedData = Object.entries(result.allocation).map(([symbol, details]) => ({
+                stockSymbol: symbol,
+                oldAllocation: parseFloat(details.oldAllocation),
+                newAllocation: parseFloat(details.newAllocation),
+                price: parseFloat(details.price),
+                change: parseFloat(details.change),
+            }));
+            setData(transformedData);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error('Error fetching data, displaying dummy data instead.');
+            setData([
+                { stockSymbol: 'AAPL', oldAllocation: 10, newAllocation: 5, price: 113.79, change: -5 },
+                { stockSymbol: 'GOOGL', oldAllocation: 10, newAllocation: 5, price: 113.79, change: -5 },
+                // Add more dummy data if needed
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-### Complete Example:
+    const fetchStockOptions = async () => {
+        try {
+            const response = await fetch('https://dummy-url.com/api/stock-options');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const result = await response.json();
+            const options = result.map(stock => ({
+                value: stock.stocksymbol,
+                label: stock.stocksymbol,
+                price: stock.price,
+                change: stock.change,
+            }));
+            setStockOptions(options);
+        } catch (error) {
+            console.error('Error fetching stock options:', error);
+            toast.error('Error fetching stock options.');
+        }
+    };
 
-```jsx
-import React from 'react';
+    useEffect(() => {
+        fetchData();
+        fetchStockOptions();
+    }, []);
 
-const formatKey = (key) => {
-    return key
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
-};
+    const handleInputChange = (e, rowIndex) => {
+        const { name, value } = e.target;
+        if (name === 'newAllocation' && parseFloat(value) < 0) {
+            toast.error('Allocation cannot be negative');
+            return;
+        }
+        const updatedData = [...data];
+        updatedData[rowIndex][name] = parseFloat(value) || 0;
+        updatedData[rowIndex].change = parseFloat(value) - updatedData[rowIndex].oldAllocation;
+        setData(updatedData);
+    };
 
-const PortfolioAllocation = ({ allocationData }) => {
-    const formattedEntries = Object.entries(allocationData).map(([key, value]) => ({
-        key: formatKey(key),
-        value,
-    }));
+    const handleDelete = (rowIndex) => {
+        const confirmed = window.confirm('Are you sure you want to delete this stock?');
+        if (confirmed) {
+            const updatedData = data.filter((_, index) => index !== rowIndex);
+            setData(updatedData);
+            toast.success('Stock deleted successfully');
+        }
+    };
+
+    const handleAccept = async () => {
+        try {
+            const response = await fetch(`https://dummy-url.com/api/save-portfolio/${portfolioId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    allocation: data.reduce((acc, stock) => {
+                        acc[stock.stockSymbol] = {
+                            oldAllocation: stock.oldAllocation,
+                            newAllocation: stock.newAllocation,
+                            price: stock.price,
+                            change: stock.change,
+                        };
+                        return acc;
+                    }, {})
+                }),
+            });
+            if (response.ok) {
+                toast.success('Portfolio saved successfully');
+                window.close();
+            } else {
+                toast.error('Failed to save portfolio');
+            }
+        } catch (error) {
+            toast.error('Error saving data');
+        }
+    };
+
+    const handleAddStock = () => {
+        if (selectedStock) {
+            const existingStock = data.find(stock => stock.stockSymbol === selectedStock.value);
+            if (existingStock) {
+                toast.error('Stock already exists in the portfolio');
+                return;
+            }
+            const newStock = {
+                stockSymbol: selectedStock.value,
+                oldAllocation: 0,
+                newAllocation: 0,
+                price: selectedStock.price,
+                change: 0,
+            };
+            setData(prevData => [...prevData, newStock]);
+            setSelectedStock(null);
+        }
+    };
+
+    const columns = React.useMemo(
+        () => [
+            {
+                Header: 'Stock Symbol',
+                accessor: 'stockSymbol',
+            },
+            {
+                Header: 'Old Allocation (%)',
+                accessor: 'oldAllocation',
+                Cell: ({ cell: { value } }) => value.toFixed(2),
+            },
+            {
+                Header: 'New Allocation (%)',
+                accessor: 'newAllocation',
+                Cell: ({ cell: { value }, row: { index } }) => (
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="newAllocation"
+                        value={value}
+                        onChange={(e) => handleInputChange(e, index)}
+                        className="w-full px-2 py-1 border rounded"
+                        onClick={(e) => e.stopPropagation()} // Prevent row click
+                    />
+                ),
+                sortType: 'basic',
+            },
+            {
+                Header: 'Change',
+                accessor: 'change',
+                Cell: ({ cell: { value } }) => value.toFixed(2),
+            },
+            {
+                Header: 'Price',
+                accessor: 'price',
+                Cell: ({ cell: { value } }) => value.toFixed(2),
+            },
+            {
+                Header: 'Actions',
+                Cell: ({ row: { index } }) => (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(index);
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded"
+                    >
+                        <FaTrash />
+                    </button>
+                ),
+            },
+        ],
+        [data]
+    );
+
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        rows,
+        prepareRow,
+    } = useTable(
+        { columns, data, initialState: { pageIndex: 0, pageSize: 10 } },
+        useGlobalFilter,
+        useSortBy,
+        usePagination
+    );
+
+    const handleRowClick = (row, e) => {
+        if (e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'BUTTON') {
+            navigate(`/stock-history/${row.original.stockSymbol}`);
+        }
+    };
+
+    const totalNewAllocation = data.reduce((acc, stock) => acc + stock.newAllocation, 0);
+
+    if (loading) {
+        return <Loader />;
+    }
 
     return (
-        <div>
-            <h2>Portfolio Allocation</h2>
-            <ul>
-                {formattedEntries.map(({ key, value }) => (
-                    <li key={key}>
-                        {key}: {value}%
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-};
-
-const allocationData = {
-    financialServices: 90,
-    technology: 60,
-    healthcare: 40,
-};
-
-const App = () => (
-    <div>
-        <PortfolioAllocation allocationData={allocationData} />
-    </div>
-);
-
-export default App;
-```
-
-### Explanation:
-
-1. **`formatKey` Function:**
-   - This function takes a key (e.g., `financialServices`) and formats it into a more readable string (`Financial Services`).
-   - It adds a space before each capital letter and capitalizes the first letter of the resulting string.
-
-2. **Mapping Over Object Entries:**
-   - Use `Object.entries(allocationData)` to get an array of `[key, value]` pairs.
-   - Map over these entries to create an array of formatted key-value pairs.
-
-3. **Rendering the Formatted Entries:**
-   - Use the formatted entries to render a list where each key-value pair is displayed in a more readable format.
-
-This approach ensures that your portfolio allocation keys are displayed in a user-friendly manner, making it easier for users to read and understand.
+        <div className="max-w-4xl mx-auto mt-10 p-5 shadow-lg">
+            <h2 className="text-2xl font-bold mb-5">Rebalanced Portfolio</h2>
+            <input
+                value={globalFilter}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                placeholder="Search stocks..."
+                className="mb-4 px-4 py-2 border rounded w-full"
+            />
+            <div className="mb-4">
+                <Select
+                    options={stockOptions}
+                    value={selectedStock}
+                    onChange={setSelectedStock}
+                    placeholder="Select stock to add"
+                    styles={darkModeStyles}
+                />
+                <button
+                    onClick={handleAddStock}
+                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded"
+                >
+                    Add Stock
+                </button>
+            </div>
+            <div className="overflow-y-auto" style={{ max

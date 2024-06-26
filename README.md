@@ -1,11 +1,13 @@
-Sure, I'll add a feature to allow the user to add new stocks from a dropdown using `react-select`, fetch the stock options from the backend, and make the allocation input and buttons sticky. Here's how you can do it:
+Certainly! Here’s how you can make those changes:
 
-1. **Install react-select**: If you haven't already, you need to install `react-select`.
-    ```sh
-    npm install react-select
-    ```
+1. **Check if Stock Already Exists:**
+    - Before adding a new stock, check if it already exists in the portfolio and display a toast if it does.
 
-2. **Add functionality to fetch stock options and add new stocks**:
+2. **Disallow Negative Allocation:**
+    - Check if the new allocation is negative and display a toast if it is.
+
+### Updated Code
+Here's the modified code including these features:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -81,6 +83,10 @@ const RebalancePortfolio = () => {
 
     const handleInputChange = (e, rowIndex) => {
         const { name, value } = e.target;
+        if (name === 'newAllocation' && parseFloat(value) < 0) {
+            toast.error('Allocation cannot be negative');
+            return;
+        }
         const updatedData = [...data];
         updatedData[rowIndex][name] = parseFloat(value) || 0;
         updatedData[rowIndex].change = parseFloat(value) - updatedData[rowIndex].oldAllocation;
@@ -128,6 +134,11 @@ const RebalancePortfolio = () => {
 
     const handleAddStock = () => {
         if (selectedStock) {
+            const existingStock = data.find(stock => stock.stockSymbol === selectedStock.value);
+            if (existingStock) {
+                toast.error('Stock already exists in the portfolio');
+                return;
+            }
             const newStock = {
                 stockSymbol: selectedStock.value,
                 oldAllocation: 0,
@@ -269,15 +280,14 @@ const RebalancePortfolio = () => {
                     <tbody {...getTableBodyProps()}>
                         {rows.map(row => {
                             prepareRow(row);
-                            const isNewStock = row.original.oldAllocation === 0;
+Sure! Continuing from where we left off:
+
+```jsx
+                            prepareRow(row);
                             return (
                                 <tr
                                     {...row.getRowProps()}
-                                    className={`cursor-pointer ${isNewStock ? 'bg-yellow-100' : ''}`}
-                                    onClick={(e) => handleRowClick(row, e
-Certainly! Here’s the continuation and completion of the code:
-
-```jsx
+                                    className="cursor-pointer hover:bg-gray-100"
                                     onClick={(e) => handleRowClick(row, e)}
                                 >
                                     {row.cells.map(cell => (
@@ -323,34 +333,15 @@ export default RebalancePortfolio;
 ```
 
 ### Explanation of Changes
-1. **Fetching Stock Options:**
-    - A new function `fetchStockOptions` is added to fetch available stock options from the backend.
-    - The fetched stock options are stored in the `stockOptions` state and are formatted for use with `react-select`.
 
-2. **Adding New Stocks:**
-    - A new state `selectedStock` is used to keep track of the stock selected from the dropdown.
-    - The `handleAddStock` function adds the selected stock to the table with initial values.
-    - `react-select` is used for the dropdown to select new stocks to add to the table.
+1. **Preventing Negative Allocation:**
+    - Added a check in `handleInputChange` to ensure new allocation is not negative. If it is, a toast is displayed, and the update is prevented.
 
-3. **Deletion Confirmation:**
-    - When a user tries to delete a stock, a confirmation prompt is displayed.
+2. **Preventing Duplicate Stock:**
+    - Added a check in `handleAddStock` to prevent adding a stock that already exists in the portfolio. If it does, a toast is displayed, and the stock is not added.
 
-4. **Sticky Allocation Input and Buttons:**
-    - The allocation input and action buttons (Accept/Reject) are made sticky at the bottom using a `div` with the `sticky` class and `bottom-0`.
-
-5. **Table with Scroll:**
-    - The table is placed inside a scrollable div with a fixed height to show a limited number of stocks at once.
-
-6. **Disabling Accept Button:**
-    - The Accept button is disabled until the total new allocation equals 100%.
-
-### Usage
-- Ensure that `react-select` is installed and imported.
-- Replace the `dummy-url.com` with your actual backend API endpoints.
-- Adjust the initial dummy data and fetch logic as per your requirements.
-
-### Final Code
-Here's the complete updated code:
+### Full Code
+Here is the complete updated code with all requested features:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -390,4 +381,21 @@ const RebalancePortfolio = () => {
             console.error('Error fetching data:', error);
             toast.error('Error fetching data, displaying dummy data instead.');
             setData([
-                { stockSymbol: 'AAPL', oldAllocation: 10, newAllocation: 5, price: 113.79, change:
+                { stockSymbol: 'AAPL', oldAllocation: 10, newAllocation: 5, price: 113.79, change: -5 },
+                { stockSymbol: 'GOOGL', oldAllocation: 10, newAllocation: 5, price: 113.79, change: -5 },
+                // Add more dummy data if needed
+            ]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchStockOptions = async () => {
+        try {
+            const response = await fetch('https://dummy-url.com/api/stock-options');
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const result = await response.json();
+            const options = result.map(stock => ({
+                value: stock.stocks

@@ -1,87 +1,72 @@
-To switch between light and dark mode styles based on the `isdarkmode` variable, you can use a conditional expression to determine which styles to apply. Here are the styles for `react-select` and the logic for switching based on `isdarkmode`.
+To store the `isDarkMode` value in local storage and retrieve it when the application loads, you need to update your Redux slice to initialize the state from local storage and update local storage whenever the state changes.
 
-### Dark Mode Styles
+Here's how you can modify your code:
+
+1. **Initialize state from local storage:**
 
 ```jsx
-const darkModeStyles = {
-    control: (provided) => ({
-        ...provided,
-        backgroundColor: '#333',
-        borderColor: '#555',
-        color: '#fff',
-    }),
-    menu: (provided) => ({
-        ...provided,
-        backgroundColor: '#333',
-        color: '#fff',
-    }),
-    option: (provided, state) => ({
-        ...provided,
-        backgroundColor: state.isFocused ? '#444' : '#333',
-        color: '#fff',
-    }),
-    singleValue: (provided) => ({
-        ...provided,
-        color: '#fff',
-    }),
-    input: (provided) => ({
-        ...provided,
-        color: '#fff',
-    }),
-    placeholder: (provided) => ({
-        ...provided,
-        color: '#aaa',
-    }),
+const initialState = {
+    isDarkMode: JSON.parse(localStorage.getItem('isDarkMode')) || false,
 };
 ```
 
-### Light Mode Styles
+2. **Update local storage when the state changes:**
 
 ```jsx
-const lightModeStyles = {
-    control: (provided) => ({
-        ...provided,
-        backgroundColor: '#fff',
-        borderColor: '#ccc',
-        color: '#000',
-    }),
-    menu: (provided) => ({
-        ...provided,
-        backgroundColor: '#fff',
-        color: '#000',
-    }),
-    option: (provided, state) => ({
-        ...provided,
-        backgroundColor: state.isFocused ? '#ddd' : '#fff',
-        color: '#000',
-    }),
-    singleValue: (provided) => ({
-        ...provided,
-        color: '#000',
-    }),
-    input: (provided) => ({
-        ...provided,
-        color: '#000',
-    }),
-    placeholder: (provided) => ({
-        ...provided,
-        color: '#666',
-    }),
-};
+const themeSlice = createSlice({
+    name: 'theme',
+    initialState,
+    reducers: {
+        toggleTheme(state) {
+            state.isDarkMode = !state.isDarkMode;
+            localStorage.setItem('isDarkMode', JSON.stringify(state.isDarkMode));
+        },
+        setDarkMode(state, action) {
+            state.isDarkMode = action.payload;
+            localStorage.setItem('isDarkMode', JSON.stringify(state.isDarkMode));
+        }
+    },
+});
+
+export const { toggleTheme, setDarkMode } = themeSlice.actions;
+export const selectIsDarkMode = (state) => state.theme.isDarkMode;
+export default themeSlice.reducer;
 ```
 
-### Applying Conditional Styles
+3. **Ensure Redux store is correctly configured:**
+
+Make sure your Redux store is correctly configured to include the `theme` slice:
 
 ```jsx
-const selectStyles = isdarkmode ? darkModeStyles : lightModeStyles;
+import { configureStore } from '@reduxjs/toolkit';
+import themeReducer from './themeSlice';
 
-<Select
-    options={stockOptions}
-    value={selectedStock}
-    onChange={setSelectedStock}
-    placeholder="Select stock to add"
-    styles={selectStyles}
-/>
+const store = configureStore({
+    reducer: {
+        theme: themeReducer,
+    },
+});
+
+export default store;
 ```
 
-In the component where you render the `Select` component, you can now use the `selectStyles` variable to switch between dark and light mode styles based on the `isdarkmode` state.
+4. **Usage in your application:**
+
+Ensure you are using the Redux `Provider` at the root of your application and access the `isDarkMode` state correctly:
+
+```jsx
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import store from './store';
+import App from './App';
+
+ReactDOM.render(
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.getElementById('root')
+);
+```
+
+Now, the `isDarkMode` value will be stored in local storage, and it will persist across new tabs and page reloads. When the user toggles the theme, the new value will be saved in local storage, ensuring a consistent experience.

@@ -37,7 +37,6 @@ def solve():
         
         bra = ira - maxi
         brb = irb + maxi
-
         
         result = max(min(bra, brb),
                      min(ira, irb))

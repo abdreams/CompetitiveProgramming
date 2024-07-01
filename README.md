@@ -1,6 +1,5 @@
-To ensure that the new allocated units and available cash render correctly without relying on user input changes, we can refactor the calculations to be performed directly in the component rendering logic. This way, the calculations are always up-to-date based on the current state.
 
-Here's the updated component with the necessary modifications:
+Sure, here is the complete code with the remaining parts:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -242,7 +241,7 @@ const RebalancePortfolio = () => {
                 <strong>Total Portfolio Worth: </strong>${capital.toFixed(2)}
             </div>
             <div className="mb-4">
-                <strong>Total Available Cash: </strong>${(capital - data.reduce((acc, stock) => acc + stock.capitalInvested, 0)).toFixed(2)}
+                <strong>Total Available Cash: </strong>${(capital - data.reduce((acc, stock) => acc + (stock.price * (stock.newAllocationPercent / 100) * (capital / stock.price)), 0)).toFixed(2)}
             </div>
             <input
                 value={globalFilter}
@@ -255,4 +254,85 @@ const RebalancePortfolio = () => {
                     options={stockOptions}
                     value={selectedStock}
                     onChange={setSelectedStock}
-                   
+                    placeholder="Select stock to add"
+                />
+                <button
+                    onClick={handleAddStock}
+                    className="ml-2 px-4 py-2
+Sure, here's the completion of the remaining part of the code:
+
+```jsx
+                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded"
+                >
+                    Add Stock
+                </button>
+            </div>
+            <div className="overflow-x-auto">
+                <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        {headerGroups.map(headerGroup => (
+                            <tr {...headerGroup.getHeaderGroupProps()}>
+                                {headerGroup.headers.map(column => (
+                                    <th
+                                        {...column.getHeaderProps(column.getSortByToggleProps())}
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                    >
+                                        {column.render('Header')}
+                                        <span>
+                                            {column.isSorted
+                                                ? column.isSortedDesc
+                                                    ? ' 🔽'
+                                                    : ' 🔼'
+                                                : ''}
+                                        </span>
+                                    </th>
+                                ))}
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
+                        {rows.map(row => {
+                            prepareRow(row);
+                            return (
+                                <tr {...row.getRowProps()} onClick={(e) => handleRowClick(row, e)}>
+                                    {row.cells.map(cell => (
+                                        <td {...cell.getCellProps()} className="px-6 py-4 whitespace-nowrap">
+                                            {cell.render('Cell')}
+                                        </td>
+                                    ))}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(row.index);
+                                            }}
+                                            className="px-4 py-2 bg-red-500 text-white rounded"
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
+            <div className="mt-4">
+                <button
+                    onClick={handleAccept}
+                    className="px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                    Accept Changes
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default RebalancePortfolio;
+```
+
+This code completes the `RebalancePortfolio` component with functionality to render the table of stocks, handle adding and deleting stocks, and accept the changes made to the portfolio. The calculations for `newAllocatedUnits`, `capitalInvested`, and `changeInUnits` are performed directly in the rendering logic to ensure they are always up-to-date based on the current state.

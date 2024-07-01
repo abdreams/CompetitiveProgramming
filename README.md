@@ -1,338 +1,83 @@
+Understood. For calculating the new allocated units and available cash initially and on each change, you should:
 
-Sure, here is the complete code with the remaining parts:
+1. Initialize the calculated fields when fetching data.
+2. Ensure these calculations are done within the component rendering.
 
-```jsx
-import React, { useEffect, useState } from 'react';
-import { useTable, useGlobalFilter, useSortBy, usePagination } from 'react-table';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { FaTrash } from 'react-icons/fa';
-import Loader from '../components/Loader';
-import Select from 'react-select';
+Here are the specific changes to make:
 
-const RebalancePortfolio = () => {
-    const navigate = useNavigate();
-    const { portfolioId } = useParams();
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [globalFilter, setGlobalFilter] = useState('');
-    const [stockOptions, setStockOptions] = useState([]);
-    const [selectedStock, setSelectedStock] = useState(null);
-    const [capital, setCapital] = useState(0);
+### 1. Modify the `fetchData` function to initialize calculated fields:
+After fetching and transforming the data, calculate `newAllocatedUnits` and `capitalInvested` for each stock:
 
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`https://dummy-url.com/api/rebalanced-portfolio/${portfolioId}`);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const result = await response.json();
-            const transformedData = Object.entries(result.allocation).map(([symbol, details]) => ({
+```javascript
+const fetchData = async () => {
+    try {
+        setLoading(true);
+        const response = await fetch(`https://dummy-url.com/api/rebalanced-portfolio/${portfolioId}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const result = await response.json();
+        const transformedData = Object.entries(result.allocation).map(([symbol, details]) => {
+            const price = parseFloat(details.price);
+            const newAllocationPercent = parseFloat(details.newAllocationPercent);
+            const oldAllocationShares = parseFloat(details.oldAllocationShares);
+            const capitalInvested = (newAllocationPercent / 100) * parseFloat(result.capital);
+            const newAllocatedUnits = capitalInvested / price;
+            const changeInUnits = newAllocatedUnits - oldAllocationShares;
+
+            return {
                 stockSymbol: symbol,
-                oldAllocationShares: parseFloat(details.oldAllocationShares),
-                newAllocationPercent: parseFloat(details.newAllocationPercent),
-                price: parseFloat(details.price),
-                capitalInvested: parseFloat(details.price) * (parseFloat(details.newAllocationPercent) / 100) * (parseFloat(result.capital) / parseFloat(details.price)),
-            }));
-            setData(transformedData);
-            setCapital(parseFloat(result.capital));
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            toast.error('Error fetching data, displaying dummy data instead.');
-            setData([
-                { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 568.95 },
-                { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 568.95 },
-                // Add more dummy data if needed
-            ]);
-            setCapital(1000);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchStockOptions = async () => {
-        try {
-            const response = await fetch('https://dummy-url.com/api/stock-options');
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const result = await response.json();
-            const options = result.map(stock => ({
-                value: stock.stocksymbol,
-                label: stock.stocksymbol,
-                price: stock.price,
-            }));
-            setStockOptions(options);
-        } catch (error) {
-            console.error('Error fetching stock options:', error);
-            toast.error('Error fetching stock options.');
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-        fetchStockOptions();
-    }, []);
-
-    const handleInputChange = (e, rowIndex) => {
-        const { name, value } = e.target;
-        if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
-            toast.error('Allocation cannot be negative');
-            return;
-        }
-        const updatedData = [...data];
-        updatedData[rowIndex][name] = parseFloat(value) || 0;
-        setData(updatedData);
-    };
-
-    const handleDelete = (rowIndex) => {
-        const confirmed = window.confirm('Are you sure you want to delete this stock?');
-        if (confirmed) {
-            const updatedData = data.filter((_, index) => index !== rowIndex);
-            setData(updatedData);
-            toast.success('Stock deleted successfully');
-        }
-    };
-
-    const handleAccept = async () => {
-        try {
-            const response = await fetch(`https://dummy-url.com/api/save-portfolio/${portfolioId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    allocation: data.reduce((acc, stock) => {
-                        acc[stock.stockSymbol] = {
-                            oldAllocationShares: stock.oldAllocationShares,
-                            newAllocationPercent: stock.newAllocationPercent,
-                            price: stock.price,
-                        };
-                        return acc;
-                    }, {}),
-                    capital: capital
-                }),
-            });
-            if (response.ok) {
-                toast.success('Portfolio saved successfully');
-                window.close();
-            } else {
-                toast.error('Failed to save portfolio');
-            }
-        } catch (error) {
-            toast.error('Error saving data');
-        }
-    };
-
-    const handleAddStock = () => {
-        if (selectedStock) {
-            const existingStock = data.find(stock => stock.stockSymbol === selectedStock.value);
-            if (existingStock) {
-                toast.error('Stock already exists in the portfolio');
-                return;
-            }
-            const newStock = {
-                stockSymbol: selectedStock.value,
-                oldAllocationShares: 0,
-                newAllocationPercent: 0,
-                price: selectedStock.price,
-                capitalInvested: 0,
+                oldAllocationShares,
+                newAllocationPercent,
+                price,
+                capitalInvested,
+                newAllocatedUnits,
+                changeInUnits,
             };
-            setData(prevData => [...prevData, newStock]);
-            setSelectedStock(null);
-        }
-    };
-
-    const columns = React.useMemo(
-        () => [
-            {
-                Header: 'Stock Symbol',
-                accessor: 'stockSymbol',
-            },
-            {
-                Header: 'Stock Price per Unit',
-                accessor: 'price',
-                Cell: ({ cell: { value } }) => value.toFixed(2),
-            },
-            {
-                Header: 'Allocation % (New Allocation)',
-                accessor: 'newAllocationPercent',
-                Cell: ({ cell: { value }, row: { index } }) => (
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="newAllocationPercent"
-                        value={value}
-                        onChange={(e) => handleInputChange(e, index)}
-                        className="w-full px-2 py-1 border rounded"
-                        onClick={(e) => e.stopPropagation()} // Prevent row click
-                    />
-                ),
-                sortType: 'basic',
-            },
-            {
-                Header: 'Capital Invested',
-                accessor: 'capitalInvested',
-                Cell: ({ cell: { row } }) => (row.original.price * (row.original.newAllocationPercent / 100) * (capital / row.original.price)).toFixed(2),
-            },
-            {
-                Header: 'Old Allocated Units',
-                accessor: 'oldAllocationShares',
-                Cell: ({ cell: { value } }) => value.toFixed(2),
-            },
-            {
-                Header: 'New Allocated Units',
-                accessor: 'newAllocatedUnits',
-                Cell: ({ cell: { row } }) => ((row.original.newAllocationPercent / 100) * capital / row.original.price).toFixed(2),
-            },
-            {
-                Header: 'Change in Units',
-                accessor: 'changeInUnits',
-                Cell: ({ cell: { row } }) => (((row.original.newAllocationPercent / 100) * capital / row.original.price) - row.original.oldAllocationShares).toFixed(2),
-            },
-            {
-                Header: 'Actions',
-                Cell: ({ row: { index } }) => (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(index);
-                        }}
-                        className="px-4 py-2 bg-red-500 text-white rounded"
-                    >
-                        <FaTrash />
-                    </button>
-                ),
-            },
-        ],
-        [data, capital]
-    );
-
-    const {
-        getTableProps,
-        getTableBodyProps,
-        headerGroups,
-        rows,
-        prepareRow,
-    } = useTable(
-        { columns, data, initialState: { pageIndex: 0, pageSize: 10 } },
-        useGlobalFilter,
-        useSortBy,
-        usePagination
-    );
-
-    const handleRowClick = (row, e) => {
-        if (e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'BUTTON') {
-            navigate(`/stock-history/${row.original.stockSymbol}`);
-        }
-    };
-
-    const totalNewAllocation = data.reduce((acc, stock) => acc + stock.newAllocationPercent, 0);
-
-    if (loading) {
-        return <Loader />;
+        });
+        setData(transformedData);
+        setCapital(parseFloat(result.capital));
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        toast.error('Error fetching data, displaying dummy data instead.');
+        const dummyData = [
+            { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 0, newAllocatedUnits: 0, changeInUnits: 0 },
+            { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 0, newAllocatedUnits: 0, changeInUnits: 0 },
+        ];
+        setData(dummyData);
+        setCapital(1000);
+    } finally {
+        setLoading(false);
     }
-
-    return (
-        <div className="max-w-4xl mx-auto mt-10 p-5 shadow-lg">
-            <h2 className="text-2xl font-bold mb-5">Rebalanced Portfolio</h2>
-            <div className="mb-4">
-                <strong>Total Portfolio Worth: </strong>${capital.toFixed(2)}
-            </div>
-            <div className="mb-4">
-                <strong>Total Available Cash: </strong>${(capital - data.reduce((acc, stock) => acc + (stock.price * (stock.newAllocationPercent / 100) * (capital / stock.price)), 0)).toFixed(2)}
-            </div>
-            <input
-                value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)}
-                placeholder="Search stocks..."
-                className="mb-4 px-4 py-2 border rounded w-full"
-            />
-            <div className="mb-4">
-                <Select
-                    options={stockOptions}
-                    value={selectedStock}
-                    onChange={setSelectedStock}
-                    placeholder="Select stock to add"
-                />
-                <button
-                    onClick={handleAddStock}
-                    className="ml-2 px-4 py-2
-Sure, here's the completion of the remaining part of the code:
-
-```jsx
-                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded"
-                >
-                    Add Stock
-                </button>
-            </div>
-            <div className="overflow-x-auto">
-                <table {...getTableProps()} className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        {headerGroups.map(headerGroup => (
-                            <tr {...headerGroup.getHeaderGroupProps()}>
-                                {headerGroup.headers.map(column => (
-                                    <th
-                                        {...column.getHeaderProps(column.getSortByToggleProps())}
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                    >
-                                        {column.render('Header')}
-                                        <span>
-                                            {column.isSorted
-                                                ? column.isSortedDesc
-                                                    ? ' 🔽'
-                                                    : ' 🔼'
-                                                : ''}
-                                        </span>
-                                    </th>
-                                ))}
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()} className="bg-white divide-y divide-gray-200">
-                        {rows.map(row => {
-                            prepareRow(row);
-                            return (
-                                <tr {...row.getRowProps()} onClick={(e) => handleRowClick(row, e)}>
-                                    {row.cells.map(cell => (
-                                        <td {...cell.getCellProps()} className="px-6 py-4 whitespace-nowrap">
-                                            {cell.render('Cell')}
-                                        </td>
-                                    ))}
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(row.index);
-                                            }}
-                                            className="px-4 py-2 bg-red-500 text-white rounded"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-            <div className="mt-4">
-                <button
-                    onClick={handleAccept}
-                    className="px-4 py-2 bg-blue-500 text-white rounded"
-                >
-                    Accept Changes
-                </button>
-            </div>
-        </div>
-    );
 };
-
-export default RebalancePortfolio;
 ```
 
-This code completes the `RebalancePortfolio` component with functionality to render the table of stocks, handle adding and deleting stocks, and accept the changes made to the portfolio. The calculations for `newAllocatedUnits`, `capitalInvested`, and `changeInUnits` are performed directly in the rendering logic to ensure they are always up-to-date based on the current state.
+### 2. Update the `handleInputChange` function to recalculate the fields:
+When `newAllocationPercent` changes, recalculate `capitalInvested`, `newAllocatedUnits`, and `changeInUnits`:
+
+```javascript
+const handleInputChange = (e, rowIndex) => {
+    const { name, value } = e.target;
+    if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
+        toast.error('Allocation cannot be negative');
+        return;
+    }
+    const updatedData = [...data];
+    const newAllocationPercent = parseFloat(value) || 0;
+    const price = updatedData[rowIndex].price;
+    const capitalInvested = (newAllocationPercent / 100) * capital;
+    const newAllocatedUnits = capitalInvested / price;
+    const oldAllocationShares = updatedData[rowIndex].oldAllocationShares;
+    const changeInUnits = newAllocatedUnits - oldAllocationShares;
+
+    updatedData[rowIndex][name] = newAllocationPercent;
+    updatedData[rowIndex].capitalInvested = capitalInvested;
+    updatedData[rowIndex].newAllocatedUnits = newAllocatedUnits;
+    updatedData[rowIndex].changeInUnits = changeInUnits;
+
+    setData(updatedData);
+    calculateTotals(updatedData, capital);
+};
+```
+
+With these changes, the `newAllocatedUnits` and other dependent fields will be properly initialized and updated without needing a change trigger in the table.

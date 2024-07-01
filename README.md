@@ -1,12 +1,38 @@
-Understood. For calculating the new allocated units and available cash initially and on each change, you should:
+Understood. To ensure `newAllocatedUnits` and `availableCash` are calculated and rendered initially and on changes, you need to make sure these calculations are performed in a way that doesn't depend solely on user input changes.
 
-1. Initialize the calculated fields when fetching data.
-2. Ensure these calculations are done within the component rendering.
+Here are the changes to make:
 
-Here are the specific changes to make:
+### 1. Perform Initial Calculations in `useEffect`:
+Modify your `useEffect` hook to initialize and update the calculated fields on component mount and when `data` changes:
 
-### 1. Modify the `fetchData` function to initialize calculated fields:
-After fetching and transforming the data, calculate `newAllocatedUnits` and `capitalInvested` for each stock:
+```javascript
+useEffect(() => {
+    const calculateInitialValues = (portfolioData, capital) => {
+        return portfolioData.map(stock => {
+            const price = parseFloat(stock.price);
+            const newAllocationPercent = parseFloat(stock.newAllocationPercent);
+            const oldAllocationShares = parseFloat(stock.oldAllocationShares);
+            const capitalInvested = (newAllocationPercent / 100) * capital;
+            const newAllocatedUnits = capitalInvested / price;
+            const changeInUnits = newAllocatedUnits - oldAllocationShares;
+
+            return {
+                ...stock,
+                capitalInvested,
+                newAllocatedUnits,
+                changeInUnits,
+            };
+        });
+    };
+
+    const updatedData = calculateInitialValues(data, capital);
+    setData(updatedData);
+    calculateTotals(updatedData, capital);
+}, [data, capital]);
+```
+
+### 2. Ensure Initial Calculations are Done on Data Fetch:
+After fetching data, trigger the calculations to update the state with the calculated fields.
 
 ```javascript
 const fetchData = async () => {
@@ -17,32 +43,20 @@ const fetchData = async () => {
             throw new Error('Network response was not ok');
         }
         const result = await response.json();
-        const transformedData = Object.entries(result.allocation).map(([symbol, details]) => {
-            const price = parseFloat(details.price);
-            const newAllocationPercent = parseFloat(details.newAllocationPercent);
-            const oldAllocationShares = parseFloat(details.oldAllocationShares);
-            const capitalInvested = (newAllocationPercent / 100) * parseFloat(result.capital);
-            const newAllocatedUnits = capitalInvested / price;
-            const changeInUnits = newAllocatedUnits - oldAllocationShares;
-
-            return {
-                stockSymbol: symbol,
-                oldAllocationShares,
-                newAllocationPercent,
-                price,
-                capitalInvested,
-                newAllocatedUnits,
-                changeInUnits,
-            };
-        });
-        setData(transformedData);
+        const initialData = Object.entries(result.allocation).map(([symbol, details]) => ({
+            stockSymbol: symbol,
+            oldAllocationShares: parseFloat(details.oldAllocationShares),
+            newAllocationPercent: parseFloat(details.newAllocationPercent),
+            price: parseFloat(details.price),
+        }));
+        setData(initialData);
         setCapital(parseFloat(result.capital));
     } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Error fetching data, displaying dummy data instead.');
         const dummyData = [
-            { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 0, newAllocatedUnits: 0, changeInUnits: 0 },
-            { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 0, newAllocatedUnits: 0, changeInUnits: 0 },
+            { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79 },
+            { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79 },
         ];
         setData(dummyData);
         setCapital(1000);
@@ -52,8 +66,8 @@ const fetchData = async () => {
 };
 ```
 
-### 2. Update the `handleInputChange` function to recalculate the fields:
-When `newAllocationPercent` changes, recalculate `capitalInvested`, `newAllocatedUnits`, and `changeInUnits`:
+### 3. Update `handleInputChange` to Trigger Calculation:
+Ensure `handleInputChange` recalculates the required fields on user input change:
 
 ```javascript
 const handleInputChange = (e, rowIndex) => {
@@ -80,4 +94,4 @@ const handleInputChange = (e, rowIndex) => {
 };
 ```
 
-With these changes, the `newAllocatedUnits` and other dependent fields will be properly initialized and updated without needing a change trigger in the table.
+These changes ensure that the initial rendering of `newAllocatedUnits` and `availableCash` is calculated correctly and recalculated when any relevant data changes.

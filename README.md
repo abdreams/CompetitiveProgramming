@@ -1,97 +1,61 @@
-Understood. To ensure `newAllocatedUnits` and `availableCash` are calculated and rendered initially and on changes, you need to make sure these calculations are performed in a way that doesn't depend solely on user input changes.
+To conditionally render the trash icon only for rows where `oldAllocationShares` is zero (indicating new stocks), you can modify the rendering logic of your table's "Actions" column. Here's how you can achieve this:
 
-Here are the changes to make:
+### Step-by-Step Implementation
 
-### 1. Perform Initial Calculations in `useEffect`:
-Modify your `useEffect` hook to initialize and update the calculated fields on component mount and when `data` changes:
+1. **Update the Actions Column in the `columns` Definition**:
+   Modify the `columns` definition to conditionally render the trash icon based on the value of `oldAllocationShares`.
 
-```javascript
-useEffect(() => {
-    const calculateInitialValues = (portfolioData, capital) => {
-        return portfolioData.map(stock => {
-            const price = parseFloat(stock.price);
-            const newAllocationPercent = parseFloat(stock.newAllocationPercent);
-            const oldAllocationShares = parseFloat(stock.oldAllocationShares);
-            const capitalInvested = (newAllocationPercent / 100) * capital;
-            const newAllocatedUnits = capitalInvested / price;
-            const changeInUnits = newAllocatedUnits - oldAllocationShares;
+   ```javascript
+   const columns = React.useMemo(
+       () => [
+           // Other columns definitions...
+           {
+               Header: 'Actions',
+               Cell: ({ row: { original } }) => {
+                   if (original.oldAllocationShares === 0) {
+                       return (
+                           <button
+                               onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDelete(original.stockSymbol); // Modify to pass the appropriate identifier for deletion
+                               }}
+                               className="px-4 py-2 bg-red-500 text-white rounded"
+                           >
+                               <FaTrash />
+                           </button>
+                       );
+                   }
+                   return null; // Return null if oldAllocationShares is not zero
+               },
+           },
+       ],
+       [handleDelete] // Ensure dependencies are correctly added
+   );
+   ```
 
-            return {
-                ...stock,
-                capitalInvested,
-                newAllocatedUnits,
-                changeInUnits,
-            };
-        });
-    };
+2. **Adjust `handleDelete` Function**:
+   Ensure `handleDelete` function receives the correct identifier (in this case, `stockSymbol` or any unique identifier from your data) when deleting the row.
 
-    const updatedData = calculateInitialValues(data, capital);
-    setData(updatedData);
-    calculateTotals(updatedData, capital);
-}, [data, capital]);
-```
+   ```javascript
+   const handleDelete = (stockSymbol) => {
+       const confirmed = window.confirm('Are you sure you want to delete this stock?');
+       if (confirmed) {
+           const updatedData = data.filter(stock => stock.stockSymbol !== stockSymbol);
+           setData(updatedData);
+           toast.success('Stock deleted successfully');
+       }
+   };
+   ```
 
-### 2. Ensure Initial Calculations are Done on Data Fetch:
-After fetching data, trigger the calculations to update the state with the calculated fields.
+### Explanation
 
-```javascript
-const fetchData = async () => {
-    try {
-        setLoading(true);
-        const response = await fetch(`https://dummy-url.com/api/rebalanced-portfolio/${portfolioId}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const result = await response.json();
-        const initialData = Object.entries(result.allocation).map(([symbol, details]) => ({
-            stockSymbol: symbol,
-            oldAllocationShares: parseFloat(details.oldAllocationShares),
-            newAllocationPercent: parseFloat(details.newAllocationPercent),
-            price: parseFloat(details.price),
-        }));
-        setData(initialData);
-        setCapital(parseFloat(result.capital));
-    } catch (error) {
-        console.error('Error fetching data:', error);
-        toast.error('Error fetching data, displaying dummy data instead.');
-        const dummyData = [
-            { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79 },
-            { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79 },
-        ];
-        setData(dummyData);
-        setCapital(1000);
-    } finally {
-        setLoading(false);
-    }
-};
-```
+- **Conditional Rendering**: Inside the `Cell` function of the "Actions" column, it checks `original.oldAllocationShares === 0`. If true (indicating a new stock), it renders the delete button with the trash icon. Otherwise, it returns `null`, effectively hiding the action for rows where `oldAllocationShares` is not zero.
+  
+- **Handle Delete Function**: Ensure `handleDelete` is updated to receive the appropriate identifier (`stockSymbol` or any unique identifier) to correctly filter and update `data` when deleting a row.
 
-### 3. Update `handleInputChange` to Trigger Calculation:
-Ensure `handleInputChange` recalculates the required fields on user input change:
+### Notes
 
-```javascript
-const handleInputChange = (e, rowIndex) => {
-    const { name, value } = e.target;
-    if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
-        toast.error('Allocation cannot be negative');
-        return;
-    }
-    const updatedData = [...data];
-    const newAllocationPercent = parseFloat(value) || 0;
-    const price = updatedData[rowIndex].price;
-    const capitalInvested = (newAllocationPercent / 100) * capital;
-    const newAllocatedUnits = capitalInvested / price;
-    const oldAllocationShares = updatedData[rowIndex].oldAllocationShares;
-    const changeInUnits = newAllocatedUnits - oldAllocationShares;
+- Ensure that your data structure (`data` array) includes `oldAllocationShares` as a property for each stock row.
+- Adjust `handleDelete` to match how you uniquely identify and remove rows from your `data` array based on your data structure.
 
-    updatedData[rowIndex][name] = newAllocationPercent;
-    updatedData[rowIndex].capitalInvested = capitalInvested;
-    updatedData[rowIndex].newAllocatedUnits = newAllocatedUnits;
-    updatedData[rowIndex].changeInUnits = changeInUnits;
-
-    setData(updatedData);
-    calculateTotals(updatedData, capital);
-};
-```
-
-These changes ensure that the initial rendering of `newAllocatedUnits` and `availableCash` is calculated correctly and recalculated when any relevant data changes.
+By implementing these changes, the trash icon will only be displayed for rows where `oldAllocationShares` is zero, aligning with your requirement to display it only for new stocks. Adjust the logic and identifiers (`stockSymbol` or others) as per your actual implementation details.

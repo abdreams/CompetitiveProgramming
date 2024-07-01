@@ -1,6 +1,6 @@
-To accommodate your requirements, we need to modify the code to reflect the new columns (Stock symbol, Stock price per unit, Allocation %, Capital invested in that stock, Old allocated units, New allocated units, Change in units, Delete action) and add the calculations for the total portfolio worth and total available cash.
+To ensure that the new allocated units and available cash render correctly without relying on user input changes, we can refactor the calculations to be performed directly in the component rendering logic. This way, the calculations are always up-to-date based on the current state.
 
-Here's the updated code:
+Here's the updated component with the necessary modifications:
 
 ```jsx
 import React, { useEffect, useState } from 'react';
@@ -29,35 +29,24 @@ const RebalancePortfolio = () => {
                 throw new Error('Network response was not ok');
             }
             const result = await response.json();
-            setCapital(parseFloat(result.capital));
-
-            const transformedData = Object.entries(result.allocation).map(([symbol, details]) => {
-                const oldAllocationShares = parseFloat(details.oldAllocationShares);
-                const newAllocationPercent = parseFloat(details.newAllocationPercent);
-                const price = parseFloat(details.price);
-
-                const newAllocationShares = (newAllocationPercent / 100) * capital / price;
-                const changeInUnits = newAllocationShares - oldAllocationShares;
-
-                return {
-                    stockSymbol: symbol,
-                    stockPricePerUnit: price,
-                    allocationPercent: newAllocationPercent,
-                    capitalInvested: (newAllocationPercent / 100) * capital,
-                    oldAllocationShares: oldAllocationShares,
-                    newAllocationShares: newAllocationShares,
-                    changeInUnits: changeInUnits,
-                };
-            });
+            const transformedData = Object.entries(result.allocation).map(([symbol, details]) => ({
+                stockSymbol: symbol,
+                oldAllocationShares: parseFloat(details.oldAllocationShares),
+                newAllocationPercent: parseFloat(details.newAllocationPercent),
+                price: parseFloat(details.price),
+                capitalInvested: parseFloat(details.price) * (parseFloat(details.newAllocationPercent) / 100) * (parseFloat(result.capital) / parseFloat(details.price)),
+            }));
             setData(transformedData);
+            setCapital(parseFloat(result.capital));
         } catch (error) {
             console.error('Error fetching data:', error);
             toast.error('Error fetching data, displaying dummy data instead.');
             setData([
-                { stockSymbol: 'AAPL', stockPricePerUnit: 113.79, allocationPercent: 5, capitalInvested: 50, oldAllocationShares: 0, newAllocationShares: 0.44, changeInUnits: 0.44 },
-                { stockSymbol: 'GOOGL', stockPricePerUnit: 113.79, allocationPercent: 5, capitalInvested: 50, oldAllocationShares: 0, newAllocationShares: 0.44, changeInUnits: 0.44 },
+                { stockSymbol: 'AAPL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 568.95 },
+                { stockSymbol: 'GOOGL', oldAllocationShares: 10, newAllocationPercent: 5, price: 113.79, capitalInvested: 568.95 },
                 // Add more dummy data if needed
             ]);
+            setCapital(1000);
         } finally {
             setLoading(false);
         }
@@ -89,20 +78,12 @@ const RebalancePortfolio = () => {
 
     const handleInputChange = (e, rowIndex) => {
         const { name, value } = e.target;
-        if (name === 'allocationPercent' && (parseFloat(value) < 0 || parseFloat(value) > 100)) {
-            toast.error('Allocation percentage must be between 0 and 100');
+        if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
+            toast.error('Allocation cannot be negative');
             return;
         }
         const updatedData = [...data];
         updatedData[rowIndex][name] = parseFloat(value) || 0;
-        
-        const allocationPercent = updatedData[rowIndex].allocationPercent;
-        const price = updatedData[rowIndex].stockPricePerUnit;
-        
-        updatedData[rowIndex].capitalInvested = (allocationPercent / 100) * capital;
-        updatedData[rowIndex].newAllocationShares = (allocationPercent / 100) * capital / price;
-        updatedData[rowIndex].changeInUnits = updatedData[rowIndex].newAllocationShares - updatedData[rowIndex].oldAllocationShares;
-
         setData(updatedData);
     };
 
@@ -126,11 +107,12 @@ const RebalancePortfolio = () => {
                     allocation: data.reduce((acc, stock) => {
                         acc[stock.stockSymbol] = {
                             oldAllocationShares: stock.oldAllocationShares,
-                            newAllocationPercent: stock.allocationPercent,
-                            price: stock.stockPricePerUnit,
+                            newAllocationPercent: stock.newAllocationPercent,
+                            price: stock.price,
                         };
                         return acc;
-                    }, {})
+                    }, {}),
+                    capital: capital
                 }),
             });
             if (response.ok) {
@@ -153,12 +135,10 @@ const RebalancePortfolio = () => {
             }
             const newStock = {
                 stockSymbol: selectedStock.value,
-                stockPricePerUnit: selectedStock.price,
-                allocationPercent: 0,
-                capitalInvested: 0,
                 oldAllocationShares: 0,
-                newAllocationShares: 0,
-                changeInUnits: 0,
+                newAllocationPercent: 0,
+                price: selectedStock.price,
+                capitalInvested: 0,
             };
             setData(prevData => [...prevData, newStock]);
             setSelectedStock(null);
@@ -173,17 +153,17 @@ const RebalancePortfolio = () => {
             },
             {
                 Header: 'Stock Price per Unit',
-                accessor: 'stockPricePerUnit',
+                accessor: 'price',
                 Cell: ({ cell: { value } }) => value.toFixed(2),
             },
             {
-                Header: 'Allocation (%)',
-                accessor: 'allocationPercent',
+                Header: 'Allocation % (New Allocation)',
+                accessor: 'newAllocationPercent',
                 Cell: ({ cell: { value }, row: { index } }) => (
                     <input
                         type="number"
                         step="0.01"
-                        name="allocationPercent"
+                        name="newAllocationPercent"
                         value={value}
                         onChange={(e) => handleInputChange(e, index)}
                         className="w-full px-2 py-1 border rounded"
@@ -195,7 +175,7 @@ const RebalancePortfolio = () => {
             {
                 Header: 'Capital Invested',
                 accessor: 'capitalInvested',
-                Cell: ({ cell: { value } }) => value.toFixed(2),
+                Cell: ({ cell: { row } }) => (row.original.price * (row.original.newAllocationPercent / 100) * (capital / row.original.price)).toFixed(2),
             },
             {
                 Header: 'Old Allocated Units',
@@ -204,13 +184,13 @@ const RebalancePortfolio = () => {
             },
             {
                 Header: 'New Allocated Units',
-                accessor: 'newAllocationShares',
-                Cell: ({ cell: { value } }) => value.toFixed(2),
+                accessor: 'newAllocatedUnits',
+                Cell: ({ cell: { row } }) => ((row.original.newAllocationPercent / 100) * capital / row.original.price).toFixed(2),
             },
             {
                 Header: 'Change in Units',
                 accessor: 'changeInUnits',
-                Cell: ({ cell: { value } }) => value.toFixed(2),
+                Cell: ({ cell: { row } }) => (((row.original.newAllocationPercent / 100) * capital / row.original.price) - row.original.oldAllocationShares).toFixed(2),
             },
             {
                 Header: 'Actions',
@@ -249,7 +229,7 @@ const RebalancePortfolio = () => {
         }
     };
 
-    const totalNewAllocation = data.reduce((acc, stock) => acc + stock.allocationPercent, 0);
+    const totalNewAllocation = data.reduce((acc, stock) => acc + stock.newAllocationPercent, 0);
 
     if (loading) {
         return <Loader />;
@@ -258,9 +238,6 @@ const RebalancePortfolio = () => {
     return (
         <div className="max-w-4xl mx-auto mt-10 p-5 shadow-lg">
             <h2 className="text-2xl font-bold mb-5">Rebalanced Portfolio</h2>
-           Certainly! Here is the continuation of the code:
-
-```jsx
             <div className="mb-4">
                 <strong>Total Portfolio Worth: </strong>${capital.toFixed(2)}
             </div>
@@ -278,94 +255,4 @@ const RebalancePortfolio = () => {
                     options={stockOptions}
                     value={selectedStock}
                     onChange={setSelectedStock}
-                    placeholder="Select stock to add"
-                />
-                <button
-                    onClick={handleAddStock}
-                    className="ml-2 px-4 py-2 bg-green-500 text-white rounded"
-                >
-                    Add Stock
-                </button>
-            </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
-                <table {...getTableProps()} className="min-w-full bg-white">
-                    <thead>
-                        {headerGroups.map(headerGroup => (
-                            <tr {...headerGroup.getHeaderGroupProps()}>
-                                {headerGroup.headers.map(column => (
-                                    <th
-                                        {...column.getHeaderProps(column.getSortByToggleProps())}
-                                        className="px-6 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
-                                    >
-                                        {column.render('Header')}
-                                        <span>
-                                            {column.isSorted
-                                                ? column.isSortedDesc
-                                                    ? ' 🔽'
-                                                    : ' 🔼'
-                                                : ''}
-                                        </span>
-                                    </th>
-                                ))}
-                            </tr>
-                        ))}
-                    </thead>
-                    <tbody {...getTableBodyProps()}>
-                        {rows.map(row => {
-                            prepareRow(row);
-                            return (
-                                <tr
-                                    {...row.getRowProps()}
-                                    className="cursor-pointer hover:bg-gray-100"
-                                    onClick={(e) => handleRowClick(row, e)}
-                                >
-                                    {row.cells.map(cell => (
-                                        <td
-                                            {...cell.getCellProps()}
-                                            className="px-6 py-4 whitespace-no-wrap border-b border-gray-200"
-                                        >
-                                            {cell.render('Cell')}
-                                        </td>
-                                    ))}
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-            <div className="sticky bottom-0 bg-white p-4 shadow-lg flex justify-between items-center">
-                <div>
-                    <strong>Total New Allocation: </strong>
-                    {totalNewAllocation.toFixed(2)}%
-                </div>
-                <div>
-                    <button
-                        onClick={() => window.close()}
-                        className="px-4 py-2 bg-gray-500 text-white rounded mr-3"
-                    >
-                        Reject
-                    </button>
-                    <button
-                        onClick={handleAccept}
-                        className="px-4 py-2 bg-blue-500 text-white rounded"
-                        disabled={totalNewAllocation !== 100}
-                    >
-                        Accept
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default RebalancePortfolio;
-```
-
-In this updated code, we have added the following features:
-
-1. Columns reflecting the stock symbol, stock price per unit, allocation percentage, capital invested, old allocated units, new allocated units, change in units, and delete action.
-2. Calculations for the total portfolio worth and total available cash displayed above the table.
-3. Enhanced input validation and dynamic calculations based on user input for the new allocation percentage.
-4. A mechanism to ensure the total allocation percentage sums up to 100% before enabling the accept button.
-
-This should meet the requirements outlined. Let me know if you need any further adjustments!
+                   

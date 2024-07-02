@@ -1,9 +1,6 @@
-To display the sector with the maximum allocation, you can modify the `PortfolioAllocation` component to find the sector with the highest allocation and display it accordingly. Here's how you can do it:
+To handle cases where there might be no allocation data, you can add checks to ensure that the `allocationData` is not null or undefined and that it contains values before trying to process or format it. If there's no allocation data, you can display a message indicating that there's no allocation data available.
 
-1. **Find the sector with the maximum allocation:**
-2. **Display the sector with the maximum allocation.**
-
-Here's the complete example:
+Here's how you can modify the `PortfolioAllocation` component to handle these cases:
 
 ```jsx
 import React from 'react';
@@ -15,6 +12,10 @@ const formatKey = (key) => {
 };
 
 const PortfolioAllocation = ({ allocationData }) => {
+    if (!allocationData || Object.keys(allocationData).length === 0) {
+        return <p>No allocation data available.</p>;
+    }
+
     const formattedEntries = Object.entries(allocationData).map(([key, value]) => ({
         key: formatKey(key),
         value,
@@ -59,10 +60,11 @@ export default App;
 
 ### Explanation:
 
-1. **Finding the Sector with the Maximum Allocation:**
-   - Use the `reduce` method on the `formattedEntries` array to find the entry with the highest allocation value.
+1. **Check for Empty Allocation Data:**
+   - The component first checks if `allocationData` is null or undefined or if it has no keys (`Object.keys(allocationData).length === 0`). 
+   - If either condition is true, it returns a message indicating that there's no allocation data available.
 
-2. **Displaying the Maximum Sector:**
-   - Display the sector with the highest allocation in a paragraph above the list of all sectors.
+2. **Process and Format Allocation Data:**
+   - If `allocationData` exists and has values, it proceeds to format and process the allocation data as before.
 
-With
+This ensures that the component handles cases where there's no allocation data gracefully, without throwing errors.

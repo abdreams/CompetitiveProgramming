@@ -1,70 +1,136 @@
-To handle cases where there might be no allocation data, you can add checks to ensure that the `allocationData` is not null or undefined and that it contains values before trying to process or format it. If there's no allocation data, you can display a message indicating that there's no allocation data available.
+To avoid losing focus when changing allocation inputs, you need to make sure that your component is not re-rendering unnecessarily. This usually happens when the state or props change, causing a full re-render of the component.
 
-Here's how you can modify the `PortfolioAllocation` component to handle these cases:
+One common solution is to use a controlled component approach and manage state updates in a way that preserves the input focus. Here’s how you can do that:
 
-```jsx
-import React from 'react';
+### Changes to Make
 
-const formatKey = (key) => {
-    return key
-        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
-        .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
-};
+1. **Maintain the Input State Separately**:
+   Instead of directly modifying the data array, you can maintain a separate state for the input values. This way, you control when the input state updates and avoid unnecessary re-renders.
 
-const PortfolioAllocation = ({ allocationData }) => {
-    if (!allocationData || Object.keys(allocationData).length === 0) {
-        return <p>No allocation data available.</p>;
-    }
+2. **Update State Only When Necessary**:
+   Only update the main data state when the input loses focus or on a specific event (e.g., a submit button).
 
-    const formattedEntries = Object.entries(allocationData).map(([key, value]) => ({
-        key: formatKey(key),
-        value,
-    }));
+### Step-by-Step Implementation
 
-    // Find the sector with the maximum allocation
-    const maxSector = formattedEntries.reduce((max, current) => {
-        return current.value > max.value ? current : max;
-    }, formattedEntries[0]);
+1. **Create a Separate State for Input Values**:
+   Add a state to hold the new allocation values temporarily.
 
-    return (
-        <div>
-            <h2>Portfolio Allocation</h2>
-            <p>
-                The sector with the highest allocation is <strong>{maxSector.key}</strong> with <strong>{maxSector.value}%</strong>.
-            </p>
-            <ul>
-                {formattedEntries.map(({ key, value }) => (
-                    <li key={key}>
-                        {key}: {value}%
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-};
+   ```javascript
+   const [inputValues, setInputValues] = useState({});
+   ```
 
-const allocationData = {
-    financialServices: 90,
-    technology: 60,
-    healthcare: 40,
-};
+2. **Initialize Input Values**:
+   Initialize the `inputValues` state when you fetch the data.
 
-const App = () => (
-    <div>
-        <PortfolioAllocation allocationData={allocationData} />
-    </div>
-);
+   ```javascript
+   useEffect(() => {
+       const fetchData = async () => {
+           // ... your existing fetch logic
+           const result = await response.json();
+           const initialData = Object.entries(result.allocation).map(([symbol, details]) => ({
+               stockSymbol: symbol,
+               oldAllocationShares: parseFloat(details.oldAllocationShares),
+               newAllocationPercent: parseFloat(details.newAllocationPercent),
+               price: parseFloat(details.price),
+           }));
+           setData(initialData);
 
-export default App;
-```
+           const initialInputValues = Object.fromEntries(
+               initialData.map(stock => [stock.stockSymbol, stock.newAllocationPercent])
+           );
+           setInputValues(initialInputValues);
+       };
 
-### Explanation:
+       fetchData();
+   }, [portfolioId]);
+   ```
 
-1. **Check for Empty Allocation Data:**
-   - The component first checks if `allocationData` is null or undefined or if it has no keys (`Object.keys(allocationData).length === 0`). 
-   - If either condition is true, it returns a message indicating that there's no allocation data available.
+3. **Handle Input Change**:
+   Update the `handleInputChange` function to manage the input values state separately.
 
-2. **Process and Format Allocation Data:**
-   - If `allocationData` exists and has values, it proceeds to format and process the allocation data as before.
+   ```javascript
+   const handleInputChange = (e, stockSymbol) => {
+       const { name, value } = e.target;
+       if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
+           toast.error('Allocation cannot be negative');
+           return;
+       }
 
-This ensures that the component handles cases where there's no allocation data gracefully, without throwing errors.
+       setInputValues(prevValues => ({
+           ...prevValues,
+           [stockSymbol]: parseFloat(value) || 0,
+       }));
+   };
+   ```
+
+4. **Modify the Input Field**:
+   Use the `inputValues` state for the input value and handle changes without re-rendering the entire component.
+
+   ```javascript
+   const columns = React.useMemo(
+       () => [
+           // Other columns definitions...
+           {
+               Header: 'New Allocation (%)',
+               accessor: 'newAllocationPercent',
+               Cell: ({ cell: { value }, row: { original } }) => (
+                   <input
+                       type="number"
+                       step="0.01"
+                       name="newAllocationPercent"
+                       value={inputValues[original.stockSymbol] || ''}
+                       onChange={(e) => handleInputChange(e, original.stockSymbol)}
+                       className="w-full px-2 py-1 border rounded"
+                       onClick={(e) => e.stopPropagation()} // Prevent row click
+                   />
+               ),
+               sortType: 'basic',
+           },
+           // ... remaining columns
+       ],
+       [inputValues] // Add inputValues as a dependency
+   );
+   ```
+
+5. **Update Data on Blur or Submit**:
+   Update the main data state when the input loses focus or on a specific event, such as clicking a save button.
+
+   ```javascript
+   const handleBlur = (stockSymbol) => {
+       setData(prevData =>
+           prevData.map(stock =>
+               stock.stockSymbol === stockSymbol
+                   ? { ...stock, newAllocationPercent: inputValues[stockSymbol] }
+                   : stock
+           )
+       );
+   };
+
+   // Modify the input field to call handleBlur on blur
+   const columns = React.useMemo(
+       () => [
+           // Other columns definitions...
+           {
+               Header: 'New Allocation (%)',
+               accessor: 'newAllocationPercent',
+               Cell: ({ cell: { value }, row: { original } }) => (
+                   <input
+                       type="number"
+                       step="0.01"
+                       name="newAllocationPercent"
+                       value={inputValues[original.stockSymbol] || ''}
+                       onChange={(e) => handleInputChange(e, original.stockSymbol)}
+                       onBlur={() => handleBlur(original.stockSymbol)}
+                       className="w-full px-2 py-1 border rounded"
+                       onClick={(e) => e.stopPropagation()} // Prevent row click
+                   />
+               ),
+               sortType: 'basic',
+           },
+           // ... remaining columns
+       ],
+       [inputValues] // Add inputValues as a dependency
+   );
+   ```
+
+By maintaining a separate state for input values and only updating the main data state when necessary, you can prevent unnecessary re-renders and avoid losing focus on input fields. This should allow you to enter new allocation values seamlessly without losing focus.

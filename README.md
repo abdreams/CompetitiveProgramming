@@ -1,61 +1,68 @@
-To conditionally render the trash icon only for rows where `oldAllocationShares` is zero (indicating new stocks), you can modify the rendering logic of your table's "Actions" column. Here's how you can achieve this:
+To display the sector with the maximum allocation, you can modify the `PortfolioAllocation` component to find the sector with the highest allocation and display it accordingly. Here's how you can do it:
 
-### Step-by-Step Implementation
+1. **Find the sector with the maximum allocation:**
+2. **Display the sector with the maximum allocation.**
 
-1. **Update the Actions Column in the `columns` Definition**:
-   Modify the `columns` definition to conditionally render the trash icon based on the value of `oldAllocationShares`.
+Here's the complete example:
 
-   ```javascript
-   const columns = React.useMemo(
-       () => [
-           // Other columns definitions...
-           {
-               Header: 'Actions',
-               Cell: ({ row: { original } }) => {
-                   if (original.oldAllocationShares === 0) {
-                       return (
-                           <button
-                               onClick={(e) => {
-                                   e.stopPropagation();
-                                   handleDelete(original.stockSymbol); // Modify to pass the appropriate identifier for deletion
-                               }}
-                               className="px-4 py-2 bg-red-500 text-white rounded"
-                           >
-                               <FaTrash />
-                           </button>
-                       );
-                   }
-                   return null; // Return null if oldAllocationShares is not zero
-               },
-           },
-       ],
-       [handleDelete] // Ensure dependencies are correctly added
-   );
-   ```
+```jsx
+import React from 'react';
 
-2. **Adjust `handleDelete` Function**:
-   Ensure `handleDelete` function receives the correct identifier (in this case, `stockSymbol` or any unique identifier from your data) when deleting the row.
+const formatKey = (key) => {
+    return key
+        .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+        .replace(/^./, str => str.toUpperCase()); // Capitalize the first letter
+};
 
-   ```javascript
-   const handleDelete = (stockSymbol) => {
-       const confirmed = window.confirm('Are you sure you want to delete this stock?');
-       if (confirmed) {
-           const updatedData = data.filter(stock => stock.stockSymbol !== stockSymbol);
-           setData(updatedData);
-           toast.success('Stock deleted successfully');
-       }
-   };
-   ```
+const PortfolioAllocation = ({ allocationData }) => {
+    const formattedEntries = Object.entries(allocationData).map(([key, value]) => ({
+        key: formatKey(key),
+        value,
+    }));
 
-### Explanation
+    // Find the sector with the maximum allocation
+    const maxSector = formattedEntries.reduce((max, current) => {
+        return current.value > max.value ? current : max;
+    }, formattedEntries[0]);
 
-- **Conditional Rendering**: Inside the `Cell` function of the "Actions" column, it checks `original.oldAllocationShares === 0`. If true (indicating a new stock), it renders the delete button with the trash icon. Otherwise, it returns `null`, effectively hiding the action for rows where `oldAllocationShares` is not zero.
-  
-- **Handle Delete Function**: Ensure `handleDelete` is updated to receive the appropriate identifier (`stockSymbol` or any unique identifier) to correctly filter and update `data` when deleting a row.
+    return (
+        <div>
+            <h2>Portfolio Allocation</h2>
+            <p>
+                The sector with the highest allocation is <strong>{maxSector.key}</strong> with <strong>{maxSector.value}%</strong>.
+            </p>
+            <ul>
+                {formattedEntries.map(({ key, value }) => (
+                    <li key={key}>
+                        {key}: {value}%
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+};
 
-### Notes
+const allocationData = {
+    financialServices: 90,
+    technology: 60,
+    healthcare: 40,
+};
 
-- Ensure that your data structure (`data` array) includes `oldAllocationShares` as a property for each stock row.
-- Adjust `handleDelete` to match how you uniquely identify and remove rows from your `data` array based on your data structure.
+const App = () => (
+    <div>
+        <PortfolioAllocation allocationData={allocationData} />
+    </div>
+);
 
-By implementing these changes, the trash icon will only be displayed for rows where `oldAllocationShares` is zero, aligning with your requirement to display it only for new stocks. Adjust the logic and identifiers (`stockSymbol` or others) as per your actual implementation details.
+export default App;
+```
+
+### Explanation:
+
+1. **Finding the Sector with the Maximum Allocation:**
+   - Use the `reduce` method on the `formattedEntries` array to find the entry with the highest allocation value.
+
+2. **Displaying the Maximum Sector:**
+   - Display the sector with the highest allocation in a paragraph above the list of all sectors.
+
+With

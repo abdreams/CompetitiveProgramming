@@ -1,136 +1,175 @@
-To avoid losing focus when changing allocation inputs, you need to make sure that your component is not re-rendering unnecessarily. This usually happens when the state or props change, causing a full re-render of the component.
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dynamic Chart Update</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <canvas id="myChart" width="400" height="200"></canvas>
+  <button onclick="updateData()">Update Chart</button>
+  
+  <script>
+    const ctx = document.getElementById('myChart').getContext('2d');
+    
+    const myChart = new Chart(ctx, {
+        type: 'bar', // or 'line', 'pie', etc.
+        data: {
+            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+            datasets: [{
+                label: 'Sales',
+                data: [65, 59, 80, 81, 56, 55, 40],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+    
+    function updateChart(chart, newLabels, newData) {
+        chart.data.labels = newLabels;
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data = newData;
+        });
+        chart.update();
+    }
+    
+    function updateData() {
+        const newLabels = ['August', 'September', 'October', 'November', 'December'];
+        const newData = [70, 65, 85, 90, 75];
+    
+        updateChart(myChart, newLabels, newData);
+    }
+  </script>
+</body>
+</html>
 
-One common solution is to use a controlled component approach and manage state updates in a way that preserves the input focus. Here’s how you can do that:
 
-### Changes to Make
+import React, { useRef } from 'react';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-1. **Maintain the Input State Separately**:
-   Instead of directly modifying the data array, you can maintain a separate state for the input values. This way, you control when the input state updates and avoid unnecessary re-renders.
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-2. **Update State Only When Necessary**:
-   Only update the main data state when the input loses focus or on a specific event (e.g., a submit button).
+const DynamicChart = () => {
+    const chartRef = useRef(null);
 
-### Step-by-Step Implementation
+    const initialData = {
+        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+        datasets: [
+            {
+                label: 'Sales',
+                data: [65, 59, 80, 81, 56, 55, 40],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+        ],
+    };
 
-1. **Create a Separate State for Input Values**:
-   Add a state to hold the new allocation values temporarily.
+    const updateChart = () => {
+        const chartInstance = chartRef.current;
+        if (chartInstance) {
+            chartInstance.data.labels = ['August', 'September', 'October', 'November', 'December'];
+            chartInstance.data.datasets[0].data = [70, 65, 85, 90, 75];
+            chartInstance.update();
+        }
+    };
 
-   ```javascript
-   const [inputValues, setInputValues] = useState({});
-   ```
+    return (
+        <div>
+            <Bar data={initialData} ref={chartRef} options={{ responsive: true, scales: { y: { beginAtZero: true } } }} />
+            <button onClick={updateChart}>Update Chart</button>
+        </div>
+    );
+};
 
-2. **Initialize Input Values**:
-   Initialize the `inputValues` state when you fetch the data.
+export default DynamicChart;
 
-   ```javascript
-   useEffect(() => {
-       const fetchData = async () => {
-           // ... your existing fetch logic
-           const result = await response.json();
-           const initialData = Object.entries(result.allocation).map(([symbol, details]) => ({
-               stockSymbol: symbol,
-               oldAllocationShares: parseFloat(details.oldAllocationShares),
-               newAllocationPercent: parseFloat(details.newAllocationPercent),
-               price: parseFloat(details.price),
-           }));
-           setData(initialData);
 
-           const initialInputValues = Object.fromEntries(
-               initialData.map(stock => [stock.stockSymbol, stock.newAllocationPercent])
-           );
-           setInputValues(initialInputValues);
-       };
+import React, { useRef, useEffect, useState } from 'react';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
-       fetchData();
-   }, [portfolioId]);
-   ```
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-3. **Handle Input Change**:
-   Update the `handleInputChange` function to manage the input values state separately.
+const DynamicChart = () => {
+    const chartRef = useRef(null);
+    const [chartData, setChartData] = useState({
+        labels: [],
+        datasets: [
+            {
+                label: 'Sales',
+                data: [],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            },
+        ],
+    });
 
-   ```javascript
-   const handleInputChange = (e, stockSymbol) => {
-       const { name, value } = e.target;
-       if (name === 'newAllocationPercent' && parseFloat(value) < 0) {
-           toast.error('Allocation cannot be negative');
-           return;
-       }
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('https://api.example.com/chart-data'); // Replace with your API endpoint
+                const data = await response.json();
 
-       setInputValues(prevValues => ({
-           ...prevValues,
-           [stockSymbol]: parseFloat(value) || 0,
-       }));
-   };
-   ```
+                const labels = data.map(item => item.label);
+                const values = data.map(item => item.value);
 
-4. **Modify the Input Field**:
-   Use the `inputValues` state for the input value and handle changes without re-rendering the entire component.
+                setChartData({
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        },
+                    ],
+                });
 
-   ```javascript
-   const columns = React.useMemo(
-       () => [
-           // Other columns definitions...
-           {
-               Header: 'New Allocation (%)',
-               accessor: 'newAllocationPercent',
-               Cell: ({ cell: { value }, row: { original } }) => (
-                   <input
-                       type="number"
-                       step="0.01"
-                       name="newAllocationPercent"
-                       value={inputValues[original.stockSymbol] || ''}
-                       onChange={(e) => handleInputChange(e, original.stockSymbol)}
-                       className="w-full px-2 py-1 border rounded"
-                       onClick={(e) => e.stopPropagation()} // Prevent row click
-                   />
-               ),
-               sortType: 'basic',
-           },
-           // ... remaining columns
-       ],
-       [inputValues] // Add inputValues as a dependency
-   );
-   ```
+                const chartInstance = chartRef.current;
+                if (chartInstance) {
+                    chartInstance.data.labels = labels;
+                    chartInstance.data.datasets[0].data = values;
+                    chartInstance.update();
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
 
-5. **Update Data on Blur or Submit**:
-   Update the main data state when the input loses focus or on a specific event, such as clicking a save button.
+        fetchData();
+    }, []);
 
-   ```javascript
-   const handleBlur = (stockSymbol) => {
-       setData(prevData =>
-           prevData.map(stock =>
-               stock.stockSymbol === stockSymbol
-                   ? { ...stock, newAllocationPercent: inputValues[stockSymbol] }
-                   : stock
-           )
-       );
-   };
+    return (
+        <div>
+            <Bar data={chartData} ref={chartRef} options={{ responsive: true, scales: { y: { beginAtZero: true } } }} />
+        </div>
+    );
+};
 
-   // Modify the input field to call handleBlur on blur
-   const columns = React.useMemo(
-       () => [
-           // Other columns definitions...
-           {
-               Header: 'New Allocation (%)',
-               accessor: 'newAllocationPercent',
-               Cell: ({ cell: { value }, row: { original } }) => (
-                   <input
-                       type="number"
-                       step="0.01"
-                       name="newAllocationPercent"
-                       value={inputValues[original.stockSymbol] || ''}
-                       onChange={(e) => handleInputChange(e, original.stockSymbol)}
-                       onBlur={() => handleBlur(original.stockSymbol)}
-                       className="w-full px-2 py-1 border rounded"
-                       onClick={(e) => e.stopPropagation()} // Prevent row click
-                   />
-               ),
-               sortType: 'basic',
-           },
-           // ... remaining columns
-       ],
-       [inputValues] // Add inputValues as a dependency
-   );
-   ```
+export default DynamicChart;
 
-By maintaining a separate state for input values and only updating the main data state when necessary, you can prevent unnecessary re-renders and avoid losing focus on input fields. This should allow you to enter new allocation values seamlessly without losing focus.
+import React from 'react';
+import ReactDOM from 'react-dom';
+import DynamicChart from './DynamicChart';
+
+const App = () => {
+    return (
+        <div>
+            <h1>Dynamic Chart Update</h1>
+            <DynamicChart />
+        </div>
+    );
+};
+
+ReactDOM.render(<App />, document.getElementById('root'));

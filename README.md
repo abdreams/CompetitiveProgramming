@@ -1,175 +1,110 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Dynamic Chart Update</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-  <canvas id="myChart" width="400" height="200"></canvas>
-  <button onclick="updateData()">Update Chart</button>
-  
-  <script>
-    const ctx = document.getElementById('myChart').getContext('2d');
-    
-    const myChart = new Chart(ctx, {
-        type: 'bar', // or 'line', 'pie', etc.
-        data: {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-            datasets: [{
-                label: 'Sales',
-                data: [65, 59, 80, 81, 56, 55, 40],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-    
-    function updateChart(chart, newLabels, newData) {
-        chart.data.labels = newLabels;
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data = newData;
-        });
-        chart.update();
-    }
-    
-    function updateData() {
-        const newLabels = ['August', 'September', 'October', 'November', 'December'];
-        const newData = [70, 65, 85, 90, 75];
-    
-        updateChart(myChart, newLabels, newData);
-    }
-  </script>
-</body>
-</html>
+If your search box is not updating the table as expected when using `setGlobalFilter`, there might be a couple of reasons for this. Here's a checklist to ensure everything is set up correctly:
 
+1. **Global Filter Hook Usage**:
+   Ensure that you're using the `useGlobalFilter` hook correctly in your table setup.
 
-import React, { useRef } from 'react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+2. **Updating State Correctly**:
+   Ensure the `setGlobalFilter` is correctly tied to the input's `onChange` event.
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+### Key Part to Check
 
-const DynamicChart = () => {
-    const chartRef = useRef(null);
+Make sure your table configuration and the input are properly connected to the global filter. Here’s a minimal example of how it should look:
 
-    const initialData = {
-        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-        datasets: [
-            {
-                label: 'Sales',
-                data: [65, 59, 80, 81, 56, 55, 40],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-            },
-        ],
-    };
+```javascript
+import React, { useState, useEffect } from 'react';
+import { useTable, useGlobalFilter, useSortBy, usePagination } from 'react-table';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { FaTrash } from 'react-icons/fa';
+import Loader from '../components/Loader';
+import Select from 'react-select';
 
-    const updateChart = () => {
-        const chartInstance = chartRef.current;
-        if (chartInstance) {
-            chartInstance.data.labels = ['August', 'September', 'October', 'November', 'December'];
-            chartInstance.data.datasets[0].data = [70, 65, 85, 90, 75];
-            chartInstance.update();
-        }
-    };
-
-    return (
-        <div>
-            <Bar data={initialData} ref={chartRef} options={{ responsive: true, scales: { y: { beginAtZero: true } } }} />
-            <button onClick={updateChart}>Update Chart</button>
-        </div>
-    );
-};
-
-export default DynamicChart;
-
-
-import React, { useRef, useEffect, useState } from 'react';
-import { Bar } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
-const DynamicChart = () => {
-    const chartRef = useRef(null);
-    const [chartData, setChartData] = useState({
-        labels: [],
-        datasets: [
-            {
-                label: 'Sales',
-                data: [],
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 1,
-            },
-        ],
-    });
+const RebalancePortfolio = () => {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [globalFilter, setGlobalFilter] = useState('');
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await fetch('https://api.example.com/chart-data'); // Replace with your API endpoint
-                const data = await response.json();
-
-                const labels = data.map(item => item.label);
-                const values = data.map(item => item.value);
-
-                setChartData({
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Sales',
-                            data: values,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                        },
-                    ],
-                });
-
-                const chartInstance = chartRef.current;
-                if (chartInstance) {
-                    chartInstance.data.labels = labels;
-                    chartInstance.data.datasets[0].data = values;
-                    chartInstance.update();
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
-        fetchData();
+        // Fetch data logic here
     }, []);
 
+    const columns = React.useMemo(
+        () => [
+            { Header: 'Stock Symbol', accessor: 'stockSymbol' },
+            { Header: 'Stock Price per Unit', accessor: 'price' },
+            // Other columns
+        ],
+        []
+    );
+
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        rows,
+        prepareRow,
+        state,
+        setGlobalFilter,
+    } = useTable(
+        {
+            columns,
+            data,
+            initialState: { globalFilter },
+        },
+        useGlobalFilter,
+        useSortBy,
+        usePagination
+    );
+
     return (
         <div>
-            <Bar data={chartData} ref={chartRef} options={{ responsive: true, scales: { y: { beginAtZero: true } } }} />
+            <input
+                value={globalFilter || ''}
+                onChange={e => setGlobalFilter(e.target.value)}
+                placeholder="Search..."
+            />
+            <table {...getTableProps()}>
+                <thead>
+                    {headerGroups.map(headerGroup => (
+                        <tr {...headerGroup.getHeaderGroupProps()}>
+                            {headerGroup.headers.map(column => (
+                                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                            ))}
+                        </tr>
+                    ))}
+                </thead>
+                <tbody {...getTableBodyProps()}>
+                    {rows.map(row => {
+                        prepareRow(row);
+                        return (
+                            <tr {...row.getRowProps()}>
+                                {row.cells.map(cell => (
+                                    <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                                ))}
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 };
 
-export default DynamicChart;
+export default RebalancePortfolio;
+```
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import DynamicChart from './DynamicChart';
+### Things to Check:
 
-const App = () => {
-    return (
-        <div>
-            <h1>Dynamic Chart Update</h1>
-            <DynamicChart />
-        </div>
-    );
-};
+1. **State Initialization**:
+   Ensure `globalFilter` is initialized correctly.
 
-ReactDOM.render(<App />, document.getElementById('root'));
+2. **Event Binding**:
+   The `onChange` event should correctly call `setGlobalFilter` with the new value.
+
+3. **Global Filter Functionality**:
+   Confirm that `useGlobalFilter` is applied correctly to the table configuration.
+
+4. **Initial State**:
+   The `initialState` should include the global filter if you want it to retain the filter state on re-renders.
+
+If the above setup still doesn't work, you might want to check for potential issues in other parts of your code that could be affecting the state update or rendering logic.

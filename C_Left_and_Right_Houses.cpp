@@ -1,6 +1,4 @@
 //#pragma comment(linker, "/STACK:2000000")
-#pragma GCC optimize("O3,unroll-loops")
-#pragma GCC target("avx2,bmi,bmi2,lzcnt,popcnt")
 #include<bits/stdc++.h>
 using namespace std;
 #define endl "\n"

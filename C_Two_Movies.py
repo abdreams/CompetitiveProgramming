@@ -17,31 +17,49 @@ def solve():
         b = list(map(int, data[idx:idx + n]))
         idx += n
         
-        count_a = {1: 0, 0: 0, -1: 0}
-        count_b = {1: 0, 0: 0, -1: 0}
+        P = 0  # Number of positive reviews (likes)
+        N = 0  # Number of negative reviews (dislikes)
         
         for i in range(n):
-            count_a[a[i]] += 1
-            count_b[b[i]] += 1
+            if a[i] == b[i]:
+                if a[i] == -1:
+                    N += 1
+                elif a[i] == 1:
+                    P += 1
+
+        A = 0  # Rating of the first movie
+        B = 0  # Rating of the second movie
         
-        ira = count_a[1] - count_a[-1]
-        irb = count_b[1] - count_b[-1]
-   
-        tl = count_a[1] + count_b[1]
-        td = count_a[-1] + count_b[-1]
-        nt = count_a[0] + count_b[0]
+        for i in range(n):
+            if a[i] != b[i]:
+                A += a[i]
+                B += b[i]
         
-        mini = abs((ira - irb) // 2)
+        if A > B:
+            A, B = B, A
         
-        maxi = min(nt, mini)
+        # Adjust ratings using positive reviews
+        count = P
+        x = min(B - A, count)
+        A += x
+        count -= x
+        x = count // 2
+        A += max(x, count)
+        B += min(x, count)
         
-        bra = ira - maxi
-        brb = irb + maxi
+        if A > B:
+            A, B = B, A
         
-        result = max(min(bra, brb),
-                     min(ira, irb))
+        # Adjust ratings using negative reviews
+        count = N
+        x = max(A - B, count)
+        B += x
+        count -= x
+        x = count // 2
+        A += max(x, count)
+        B += min(x, count)
         
-        results.append(result)
+        results.append(min(A, B))
     
     sys.stdout.write("\n".join(map(str, results)) + "\n")
 
